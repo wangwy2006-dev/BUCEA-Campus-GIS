@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>北京建筑大学大兴校区 GIS</title>
+  <script src="https://cesium.com/downloads/cesiumjs/releases/1.144/Build/Cesium/Cesium.js"></script>
+  <link rel="stylesheet" href="https://cesium.com/downloads/cesiumjs/releases/1.144/Build/Cesium/Widgets/widgets.css" />
+  <style>
+    html, body, #cesiumContainer { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; }
+    body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    .toolbar {
+      position: absolute;
+      z-index: 10;
+      top: 12px;
+      left: 12px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: rgba(20, 25, 32, 0.82);
+      color: #fff;
+    }
+    .toolbar strong { margin-right: 4px; font-size: 14px; }
+    .toolbar button {
+      border: 1px solid rgba(255,255,255,.35);
+      border-radius: 6px;
+      padding: 6px 10px;
+      background: rgba(255,255,255,.12);
+      color: #fff;
+      cursor: pointer;
+    }
+    .toolbar button:hover { background: rgba(255,255,255,.22); }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <strong>北建大大兴校区 GIS</strong>
+    <button id="view2D" type="button">2D</button>
+    <button id="view3D" type="button">3D</button>
+  </div>
+  <div id="cesiumContainer"></div>
+
+  <script>
+    const viewer = new Cesium.Viewer("cesiumContainer", {
+      imageryProvider: false,
+      terrainProvider: new Cesium.EllipsoidTerrainProvider(),
+      animation: false,
+      timeline: false,
+      geocoder: false,
+      homeButton: false,
+      sceneModePicker: false,
+      baseLayerPicker: false,
+      navigationHelpButton: false
+    });
+
+    viewer.imageryLayers.addImageryProvider(
+      new Cesium.OpenStreetMapImageryProvider({
+        url: "https://tile.openstreetmap.org/"
+      })
+    );
+
+    const campus = Cesium.Cartesian3.fromDegrees(116.292065, 39.75511, 1200);
+    viewer.camera.setView({
+      destination: campus,
+      orientation: {
+        heading: Cesium.Math.toRadians(0),
+        pitch: Cesium.Math.toRadians(-65),
+        roll: 0
+      }
+    });
+
+    viewer.entities.add({
+      name: "北京建筑大学大兴校区",
+      position: Cesium.Cartesian3.fromDegrees(116.292065, 39.75511),
+      point: {
+        pixelSize: 10,
+        color: Cesium.Color.ORANGE,
+        outlineColor: Cesium.Color.WHITE,
+        outlineWidth: 2
+      },
+      label: {
+        text: "北京建筑大学大兴校区",
+        font: "16px sans-serif",
+        pixelOffset: new Cesium.Cartesian2(0, -24),
+        fillColor: Cesium.Color.WHITE,
+        outlineColor: Cesium.Color.BLACK,
+        outlineWidth: 3,
+        style: Cesium.LabelStyle.FILL_AND_OUTLINE
+      }
+    });
+
+    document.getElementById("view2D").addEventListener("click", () => {
+      viewer.scene.morphTo2D(1.2);
+    });
+
+    document.getElementById("view3D").addEventListener("click", () => {
+      viewer.scene.morphTo3D(1.2);
+    });
+  </script>
+</body>
+</html>
