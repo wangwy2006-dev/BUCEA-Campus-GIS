@@ -7,96 +7,80 @@
   <script src="https://cesium.com/downloads/cesiumjs/releases/1.144/Build/Cesium/Cesium.js"></script>
   <link rel="stylesheet" href="https://cesium.com/downloads/cesiumjs/releases/1.144/Build/Cesium/Widgets/widgets.css" />
   <style>
-    html, body, #cesiumContainer { width: 100%; height: 100%; margin: 0; padding: 0; overflow: hidden; }
-    body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-    .toolbar {
-      position: absolute;
-      z-index: 10;
-      top: 12px;
-      left: 12px;
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      padding: 8px 10px;
-      border-radius: 8px;
-      background: rgba(20, 25, 32, 0.82);
-      color: #fff;
-    }
-    .toolbar strong { margin-right: 4px; font-size: 14px; }
-    .toolbar button {
-      border: 1px solid rgba(255,255,255,.35);
-      border-radius: 6px;
-      padding: 6px 10px;
-      background: rgba(255,255,255,.12);
-      color: #fff;
-      cursor: pointer;
-    }
-    .toolbar button:hover { background: rgba(255,255,255,.22); }
+    html, body, #cesiumContainer { width:100%; height:100%; margin:0; padding:0; overflow:hidden; }
+    body { font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+    .toolbar { position:absolute; z-index:10; top:12px; left:12px; right:12px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; padding:9px 11px; border-radius:9px; background:rgba(20,25,32,.84); color:#fff; }
+    .toolbar strong { margin-right:5px; font-size:14px; }
+    .toolbar button { border:1px solid rgba(255,255,255,.35); border-radius:6px; padding:7px 10px; background:rgba(255,255,255,.12); color:#fff; cursor:pointer; }
+    .toolbar button:hover { background:rgba(255,255,255,.22); }
+    .status { position:absolute; z-index:10; left:12px; bottom:12px; max-width:420px; padding:8px 11px; border-radius:8px; background:rgba(20,25,32,.78); color:#fff; font-size:13px; }
   </style>
 </head>
 <body>
   <div class="toolbar">
     <strong>北建大大兴校区 GIS</strong>
-    <button id="view2D" type="button">2D</button>
-    <button id="view3D" type="button">3D</button>
+    <button id="globe" type="button">🌍 全球</button>
+    <button id="campus" type="button">🏫 校园</button>
+    <button id="view2D" type="button">🗺️ 二维</button>
+    <button id="view3D" type="button">🏢 三维</button>
+    <button id="farm" type="button">🌱 开心农场</button>
   </div>
   <div id="cesiumContainer"></div>
+  <div class="status" id="status">数字地球 → 北京 → 大兴 → 北京建筑大学大兴校区</div>
 
   <script>
     const viewer = new Cesium.Viewer("cesiumContainer", {
-      imageryProvider: false,
-      terrainProvider: new Cesium.EllipsoidTerrainProvider(),
-      animation: false,
-      timeline: false,
-      geocoder: false,
-      homeButton: false,
-      sceneModePicker: false,
-      baseLayerPicker: false,
-      navigationHelpButton: false
+      imageryProvider:false,
+      terrainProvider:new Cesium.EllipsoidTerrainProvider(),
+      animation:false, timeline:false, geocoder:false, homeButton:false,
+      sceneModePicker:false, baseLayerPicker:false, navigationHelpButton:false
     });
 
-    viewer.imageryLayers.addImageryProvider(
-      new Cesium.OpenStreetMapImageryProvider({
-        url: "https://tile.openstreetmap.org/"
-      })
-    );
+    viewer.imageryLayers.addImageryProvider(new Cesium.OpenStreetMapImageryProvider({ url:"https://tile.openstreetmap.org/" }));
 
-    const campus = Cesium.Cartesian3.fromDegrees(116.292065, 39.75511, 1200);
-    viewer.camera.setView({
-      destination: campus,
-      orientation: {
-        heading: Cesium.Math.toRadians(0),
-        pitch: Cesium.Math.toRadians(-65),
-        roll: 0
-      }
+    const CAMPUS = { lon:116.292065, lat:39.75511 };
+    const FARM = { lon:116.2960, lat:39.7518 }; // 东南区域概略入口，后续依据公开数据校正
+
+    viewer.entities.add({
+      name:"北京建筑大学大兴校区",
+      position:Cesium.Cartesian3.fromDegrees(CAMPUS.lon,CAMPUS.lat),
+      point:{ pixelSize:10, color:Cesium.Color.ORANGE, outlineColor:Cesium.Color.WHITE, outlineWidth:2 },
+      label:{ text:"北京建筑大学大兴校区", font:"16px sans-serif", pixelOffset:new Cesium.Cartesian2(0,-24), fillColor:Cesium.Color.WHITE, outlineColor:Cesium.Color.BLACK, outlineWidth:3, style:Cesium.LabelStyle.FILL_AND_OUTLINE }
     });
 
     viewer.entities.add({
-      name: "北京建筑大学大兴校区",
-      position: Cesium.Cartesian3.fromDegrees(116.292065, 39.75511),
-      point: {
-        pixelSize: 10,
-        color: Cesium.Color.ORANGE,
-        outlineColor: Cesium.Color.WHITE,
-        outlineWidth: 2
-      },
-      label: {
-        text: "北京建筑大学大兴校区",
-        font: "16px sans-serif",
-        pixelOffset: new Cesium.Cartesian2(0, -24),
-        fillColor: Cesium.Color.WHITE,
-        outlineColor: Cesium.Color.BLACK,
-        outlineWidth: 3,
-        style: Cesium.LabelStyle.FILL_AND_OUTLINE
-      }
+      name:"开心农场（规划入口）",
+      position:Cesium.Cartesian3.fromDegrees(FARM.lon,FARM.lat),
+      point:{ pixelSize:9, color:Cesium.Color.LIMEGREEN, outlineColor:Cesium.Color.WHITE, outlineWidth:2 },
+      label:{ text:"开心农场 · 虚实融合实验场景", font:"14px sans-serif", pixelOffset:new Cesium.Cartesian2(0,-22), fillColor:Cesium.Color.WHITE, outlineColor:Cesium.Color.BLACK, outlineWidth:3, style:Cesium.LabelStyle.FILL_AND_OUTLINE }
     });
 
-    document.getElementById("view2D").addEventListener("click", () => {
+    function setStatus(text){ document.getElementById("status").textContent=text; }
+    function flyCampus(){
+      viewer.scene.morphTo3D(0.8);
+      viewer.camera.flyTo({ destination:Cesium.Cartesian3.fromDegrees(CAMPUS.lon,CAMPUS.lat,1800), duration:4.5, orientation:{ heading:0, pitch:Cesium.Math.toRadians(-65), roll:0 } });
+      setStatus("三维校园：后续加入校园边界、建筑、道路、绿地与操场等公开空间数据");
+    }
+
+    viewer.camera.setView({ destination:Cesium.Cartesian3.fromDegrees(105,35,18000000), orientation:{ heading:0, pitch:Cesium.Math.toRadians(-90), roll:0 } });
+    window.setTimeout(flyCampus,1200);
+
+    document.getElementById("globe").addEventListener("click",()=>{
+      viewer.scene.morphTo3D(0.8);
+      viewer.camera.flyTo({ destination:Cesium.Cartesian3.fromDegrees(105,35,18000000), duration:2.5 });
+      setStatus("全球数字地球：校园位于统一地理坐标框架中");
+    });
+    document.getElementById("campus").addEventListener("click",flyCampus);
+    document.getElementById("view2D").addEventListener("click",()=>{
       viewer.scene.morphTo2D(1.2);
+      window.setTimeout(()=>viewer.camera.flyTo({ destination:Cesium.Cartesian3.fromDegrees(CAMPUS.lon,CAMPUS.lat,3000), duration:1.8 }),1300);
+      setStatus("二维校园 GIS：与三维场景共用同一套校园空间数据");
     });
-
-    document.getElementById("view3D").addEventListener("click", () => {
-      viewer.scene.morphTo3D(1.2);
+    document.getElementById("view3D").addEventListener("click",flyCampus);
+    document.getElementById("farm").addEventListener("click",()=>{
+      viewer.scene.morphTo3D(0.8);
+      viewer.camera.flyTo({ destination:Cesium.Cartesian3.fromDegrees(FARM.lon,FARM.lat,650), duration:2.5, orientation:{ heading:Cesium.Math.toRadians(20), pitch:Cesium.Math.toRadians(-55), roll:0 } });
+      setStatus("开心农场：独立虚拟实验场景入口；下一阶段加入农田、作物、气象站与模拟传感器");
     });
   </script>
 </body>
