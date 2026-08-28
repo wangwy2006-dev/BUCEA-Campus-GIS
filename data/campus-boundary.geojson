@@ -1,0 +1,34 @@
+{
+  "type": "FeatureCollection",
+  "name": "BUCEA_Daxing_Campus_Boundary_Schematic",
+  "crs_note": "WGS84 longitude/latitude",
+  "data_note": "教学与原型展示用概略校园边界，根据校园中心位置与公开地图目视范围建立，非测绘成果；后续以可靠开放数据替换。",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "campus-boundary-001",
+        "name": "北京建筑大学大兴校区",
+        "category": "campus_boundary",
+        "accuracy": "schematic",
+        "source": "open-map visual approximation",
+        "replaceable": true
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [116.2864, 39.7603],
+          [116.2912, 39.7608],
+          [116.2977, 39.7598],
+          [116.2990, 39.7564],
+          [116.2984, 39.7521],
+          [116.2955, 39.7496],
+          [116.2892, 39.7494],
+          [116.2858, 39.7522],
+          [116.2853, 39.7565],
+          [116.2864, 39.7603]
+        ]]
+      }
+    }
+  ]
+}
