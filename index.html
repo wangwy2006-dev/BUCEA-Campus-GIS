@@ -13,20 +13,18 @@
     .toolbar strong { margin-right:5px; font-size:14px; }
     .toolbar button { border:1px solid rgba(255,255,255,.35); border-radius:6px; padding:7px 10px; background:rgba(255,255,255,.12); color:#fff; cursor:pointer; }
     .toolbar button:hover { background:rgba(255,255,255,.22); }
-    .status { position:absolute; z-index:10; left:12px; bottom:12px; max-width:420px; padding:8px 11px; border-radius:8px; background:rgba(20,25,32,.78); color:#fff; font-size:13px; }
+    .status { position:absolute; z-index:10; left:12px; bottom:12px; max-width:520px; padding:8px 11px; border-radius:8px; background:rgba(20,25,32,.78); color:#fff; font-size:13px; line-height:1.5; }
   </style>
 </head>
 <body>
   <div class="toolbar">
     <strong>北建大大兴校区 GIS</strong>
-    <button id="globe" type="button">🌍 全球</button>
-    <button id="campus" type="button">🏫 校园</button>
-    <button id="view2D" type="button">🗺️ 二维</button>
-    <button id="view3D" type="button">🏢 三维</button>
+    <button id="view2D" type="button">🗺️ 二维校园</button>
+    <button id="view3D" type="button">🏢 三维校园</button>
     <button id="farm" type="button">🌱 开心农场</button>
   </div>
   <div id="cesiumContainer"></div>
-  <div class="status" id="status">数字地球 → 北京 → 大兴 → 北京建筑大学大兴校区</div>
+  <div class="status" id="status">请选择入口：二维校园 / 三维校园 / 开心农场。二维与三维入口都会从全球视角进入校园。</div>
 
   <script>
     const viewer = new Cesium.Viewer("cesiumContainer", {
@@ -36,15 +34,25 @@
       sceneModePicker:false, baseLayerPicker:false, navigationHelpButton:false
     });
 
-    viewer.imageryLayers.addImageryProvider(new Cesium.OpenStreetMapImageryProvider({ url:"https://tile.openstreetmap.org/" }));
+    viewer.imageryLayers.addImageryProvider(
+      new Cesium.OpenStreetMapImageryProvider({ url:"https://tile.openstreetmap.org/" })
+    );
 
     const CAMPUS = { lon:116.292065, lat:39.75511 };
-    const FARM = { lon:116.2960, lat:39.7518 }; // 东南区域概略入口，后续依据公开数据校正
+    const FARM = { lon:116.2960, lat:39.7518 };
+    const GLOBAL_VIEW = {
+      destination: Cesium.Cartesian3.fromDegrees(105, 35, 18000000),
+      orientation: { heading:0, pitch:Cesium.Math.toRadians(-90), roll:0 }
+    };
+
+    function setStatus(text){ document.getElementById("status").textContent=text; }
+
+    viewer.camera.setView(GLOBAL_VIEW);
 
     viewer.entities.add({
       name:"北京建筑大学大兴校区",
       position:Cesium.Cartesian3.fromDegrees(CAMPUS.lon,CAMPUS.lat),
-      point:{ pixelSize:10, color:Cesium.Color.ORANGE, outlineColor:Cesium.Color.WHITE, outlineWidth:2 },
+      point:{ pixelSize:9, color:Cesium.Color.ORANGE, outlineColor:Cesium.Color.WHITE, outlineWidth:2 },
       label:{ text:"北京建筑大学大兴校区", font:"16px sans-serif", pixelOffset:new Cesium.Cartesian2(0,-24), fillColor:Cesium.Color.WHITE, outlineColor:Cesium.Color.BLACK, outlineWidth:3, style:Cesium.LabelStyle.FILL_AND_OUTLINE }
     });
 
@@ -55,33 +63,65 @@
       label:{ text:"开心农场 · 虚实融合实验场景", font:"14px sans-serif", pixelOffset:new Cesium.Cartesian2(0,-22), fillColor:Cesium.Color.WHITE, outlineColor:Cesium.Color.BLACK, outlineWidth:3, style:Cesium.LabelStyle.FILL_AND_OUTLINE }
     });
 
-    function setStatus(text){ document.getElementById("status").textContent=text; }
-    function flyCampus(){
-      viewer.scene.morphTo3D(0.8);
-      viewer.camera.flyTo({ destination:Cesium.Cartesian3.fromDegrees(CAMPUS.lon,CAMPUS.lat,1800), duration:4.5, orientation:{ heading:0, pitch:Cesium.Math.toRadians(-65), roll:0 } });
-      setStatus("三维校园：后续加入校园边界、建筑、道路、绿地与操场等公开空间数据");
+    let campusBoundary;
+    Cesium.GeoJsonDataSource.load("data/campus-boundary.geojson", {
+      clampToGround:true,
+      stroke:Cesium.Color.CYAN,
+      strokeWidth:3,
+      fill:Cesium.Color.CYAN.withAlpha(0.14)
+    }).then(dataSource => {
+      campusBoundary = dataSource;
+      viewer.dataSources.add(dataSource);
+      setStatus("校园概略边界已加载。请选择二维校园或三维校园进入；该边界为教学原型数据，后续可直接替换为可靠开放数据。");
+    }).catch(error => {
+      console.error(error);
+      setStatus("校园边界数据加载失败，但基础底图仍可使用。");
+    });
+
+    function resetToGlobal(){
+      viewer.scene.morphTo3D(0);
+      viewer.camera.setView(GLOBAL_VIEW);
     }
 
-    viewer.camera.setView({ destination:Cesium.Cartesian3.fromDegrees(105,35,18000000), orientation:{ heading:0, pitch:Cesium.Math.toRadians(-90), roll:0 } });
-    window.setTimeout(flyCampus,1200);
+    function enter3D(){
+      resetToGlobal();
+      setStatus("三维校园：全球 → 北京 → 大兴 → 北建大；当前已显示与二维共用的校园边界数据。");
+      viewer.camera.flyTo({
+        destination:Cesium.Cartesian3.fromDegrees(CAMPUS.lon,CAMPUS.lat,1800),
+        duration:4.2,
+        orientation:{ heading:Cesium.Math.toRadians(10), pitch:Cesium.Math.toRadians(-62), roll:0 }
+      });
+    }
 
-    document.getElementById("globe").addEventListener("click",()=>{
-      viewer.scene.morphTo3D(0.8);
-      viewer.camera.flyTo({ destination:Cesium.Cartesian3.fromDegrees(105,35,18000000), duration:2.5 });
-      setStatus("全球数字地球：校园位于统一地理坐标框架中");
-    });
-    document.getElementById("campus").addEventListener("click",flyCampus);
-    document.getElementById("view2D").addEventListener("click",()=>{
-      viewer.scene.morphTo2D(1.2);
-      window.setTimeout(()=>viewer.camera.flyTo({ destination:Cesium.Cartesian3.fromDegrees(CAMPUS.lon,CAMPUS.lat,3000), duration:1.8 }),1300);
-      setStatus("二维校园 GIS：与三维场景共用同一套校园空间数据");
-    });
-    document.getElementById("view3D").addEventListener("click",flyCampus);
-    document.getElementById("farm").addEventListener("click",()=>{
-      viewer.scene.morphTo3D(0.8);
-      viewer.camera.flyTo({ destination:Cesium.Cartesian3.fromDegrees(FARM.lon,FARM.lat,650), duration:2.5, orientation:{ heading:Cesium.Math.toRadians(20), pitch:Cesium.Math.toRadians(-55), roll:0 } });
-      setStatus("开心农场：独立虚拟实验场景入口；下一阶段加入农田、作物、气象站与模拟传感器");
-    });
+    function enter2D(){
+      resetToGlobal();
+      setStatus("二维校园：全球 → 北京 → 大兴 → 北建大；进入后与三维场景共用同一份校园边界 GeoJSON。");
+      viewer.camera.flyTo({
+        destination:Cesium.Cartesian3.fromDegrees(CAMPUS.lon,CAMPUS.lat,2400),
+        duration:3.6,
+        orientation:{ heading:0, pitch:Cesium.Math.toRadians(-78), roll:0 },
+        complete:() => {
+          viewer.scene.morphTo2D(1.0);
+          window.setTimeout(() => {
+            viewer.camera.flyTo({ destination:Cesium.Cartesian3.fromDegrees(CAMPUS.lon,CAMPUS.lat,2600), duration:1.2 });
+          }, 1050);
+        }
+      });
+    }
+
+    function enterFarm(){
+      resetToGlobal();
+      viewer.camera.flyTo({
+        destination:Cesium.Cartesian3.fromDegrees(FARM.lon,FARM.lat,650),
+        duration:3.6,
+        orientation:{ heading:Cesium.Math.toRadians(20), pitch:Cesium.Math.toRadians(-55), roll:0 }
+      });
+      setStatus("开心农场：独立虚拟实验场景入口；当前保留概略位置，后续单独加入农田、作物、气象站与模拟传感器。");
+    }
+
+    document.getElementById("view2D").addEventListener("click", enter2D);
+    document.getElementById("view3D").addEventListener("click", enter3D);
+    document.getElementById("farm").addEventListener("click", enterFarm);
   </script>
 </body>
 </html>
