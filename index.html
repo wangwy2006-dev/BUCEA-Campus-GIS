@@ -13,7 +13,7 @@
     .toolbar strong { margin-right:5px; font-size:14px; }
     .toolbar button { border:1px solid rgba(255,255,255,.35); border-radius:6px; padding:7px 10px; background:rgba(255,255,255,.12); color:#fff; cursor:pointer; }
     .toolbar button:hover { background:rgba(255,255,255,.22); }
-    .status { position:absolute; z-index:10; left:12px; bottom:12px; max-width:520px; padding:8px 11px; border-radius:8px; background:rgba(20,25,32,.78); color:#fff; font-size:13px; line-height:1.5; }
+    .status { position:absolute; z-index:10; left:12px; bottom:12px; max-width:560px; padding:8px 11px; border-radius:8px; background:rgba(20,25,32,.78); color:#fff; font-size:13px; line-height:1.5; }
   </style>
 </head>
 <body>
@@ -24,7 +24,7 @@
     <button id="farm" type="button">🌱 开心农场</button>
   </div>
   <div id="cesiumContainer"></div>
-  <div class="status" id="status">请选择入口：二维校园 / 三维校园 / 开心农场。二维与三维入口都会从全球视角进入校园。</div>
+  <div class="status" id="status">请选择入口：二维校园 / 三维校园 / 开心农场。二维与三维入口共用同一套校园空间数据。</div>
 
   <script>
     const viewer = new Cesium.Viewer("cesiumContainer", {
@@ -64,19 +64,55 @@
     });
 
     let campusBoundary;
+    let campusBuildings;
+
     Cesium.GeoJsonDataSource.load("data/campus-boundary.geojson", {
       clampToGround:true,
       stroke:Cesium.Color.CYAN,
       strokeWidth:3,
-      fill:Cesium.Color.CYAN.withAlpha(0.14)
+      fill:Cesium.Color.CYAN.withAlpha(0.10)
     }).then(dataSource => {
       campusBoundary = dataSource;
       viewer.dataSources.add(dataSource);
-      setStatus("校园概略边界已加载。请选择二维校园或三维校园进入；该边界为教学原型数据，后续可直接替换为可靠开放数据。");
     }).catch(error => {
       console.error(error);
       setStatus("校园边界数据加载失败，但基础底图仍可使用。");
     });
+
+    Cesium.GeoJsonDataSource.load("data/campus-buildings.geojson", {
+      clampToGround:false,
+      stroke:Cesium.Color.WHITE,
+      strokeWidth:1,
+      fill:Cesium.Color.DODGERBLUE.withAlpha(0.62)
+    }).then(dataSource => {
+      campusBuildings = dataSource;
+      viewer.dataSources.add(dataSource);
+      styleBuildings(false);
+      setStatus("校园边界与第一批建筑轮廓已加载。二维和三维使用同一份 campus-buildings.geojson。");
+    }).catch(error => {
+      console.error(error);
+      setStatus("校园建筑数据加载失败，但校园边界和基础底图仍可使用。");
+    });
+
+    function getBuildingHeight(entity){
+      if (!entity.properties || !entity.properties.height) return 18;
+      const value = entity.properties.height.getValue(Cesium.JulianDate.now());
+      return Number(value) || 18;
+    }
+
+    function styleBuildings(is3D){
+      if (!campusBuildings) return;
+      campusBuildings.entities.values.forEach(entity => {
+        if (!entity.polygon) return;
+        entity.polygon.material = is3D
+          ? Cesium.Color.ROYALBLUE.withAlpha(0.78)
+          : Cesium.Color.DODGERBLUE.withAlpha(0.58);
+        entity.polygon.outline = true;
+        entity.polygon.outlineColor = Cesium.Color.WHITE.withAlpha(0.9);
+        entity.polygon.height = 0;
+        entity.polygon.extrudedHeight = is3D ? getBuildingHeight(entity) : 0;
+      });
+    }
 
     function resetToGlobal(){
       viewer.scene.morphTo3D(0);
@@ -85,7 +121,8 @@
 
     function enter3D(){
       resetToGlobal();
-      setStatus("三维校园：全球 → 北京 → 大兴 → 北建大；当前已显示与二维共用的校园边界数据。");
+      styleBuildings(true);
+      setStatus("三维校园：全球 → 北京 → 大兴 → 北建大。第一批建筑轮廓已按同一 GeoJSON 中的 height 属性拉伸显示。");
       viewer.camera.flyTo({
         destination:Cesium.Cartesian3.fromDegrees(CAMPUS.lon,CAMPUS.lat,1800),
         duration:4.2,
@@ -95,7 +132,8 @@
 
     function enter2D(){
       resetToGlobal();
-      setStatus("二维校园：全球 → 北京 → 大兴 → 北建大；进入后与三维场景共用同一份校园边界 GeoJSON。");
+      styleBuildings(false);
+      setStatus("二维校园：全球 → 北京 → 大兴 → 北建大。建筑以平面轮廓显示，与三维场景共用同一份 campus-buildings.geojson。");
       viewer.camera.flyTo({
         destination:Cesium.Cartesian3.fromDegrees(CAMPUS.lon,CAMPUS.lat,2400),
         duration:3.6,
@@ -111,12 +149,13 @@
 
     function enterFarm(){
       resetToGlobal();
+      styleBuildings(true);
       viewer.camera.flyTo({
         destination:Cesium.Cartesian3.fromDegrees(FARM.lon,FARM.lat,650),
         duration:3.6,
         orientation:{ heading:Cesium.Math.toRadians(20), pitch:Cesium.Math.toRadians(-55), roll:0 }
       });
-      setStatus("开心农场：独立虚拟实验场景入口；当前保留概略位置，后续单独加入农田、作物、气象站与模拟传感器。");
+      setStatus("开心农场：独立虚拟实验场景入口；当前仍保留概略位置，后续单独加入农田、作物、气象站与模拟传感器。");
     }
 
     document.getElementById("view2D").addEventListener("click", enter2D);
