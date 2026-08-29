@@ -3,42 +3,63 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>北京建筑大学大兴校区 GIS</title>
-  <script src="https://cesium.com/downloads/cesiumjs/releases/1.144/Build/Cesium/Cesium.js"></script>
-  <link rel="stylesheet" href="https://cesium.com/downloads/cesiumjs/releases/1.144/Build/Cesium/Widgets/widgets.css" />
+  <title>北京建筑大学大兴校区 · 校园GIS</title>
   <style>
-    html,body,#cesiumContainer{width:100%;height:100%;margin:0;padding:0;overflow:hidden} body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
-    .toolbar{position:absolute;z-index:10;top:12px;left:12px;display:flex;gap:8px;padding:9px 11px;border-radius:9px;background:rgba(20,25,32,.84);color:#fff}
-    .toolbar button{border:1px solid rgba(255,255,255,.35);border-radius:6px;padding:7px 10px;background:rgba(255,255,255,.12);color:#fff;cursor:pointer}.toolbar button:hover{background:rgba(255,255,255,.22)}
-    .status{position:absolute;z-index:10;left:12px;bottom:12px;max-width:600px;padding:8px 11px;border-radius:8px;background:rgba(20,25,32,.78);color:#fff;font-size:13px;line-height:1.5}
+    :root{--red:#a61d2d;--ink:#172033;--muted:#667085;--bg:#f5f7fb;--card:#fff}
+    *{box-sizing:border-box} html{scroll-behavior:smooth} body{margin:0;font-family:system-ui,-apple-system,"Segoe UI","Microsoft YaHei",sans-serif;color:var(--ink);background:var(--bg)}
+    a{text-decoration:none;color:inherit}.hero{min-height:78vh;position:relative;display:grid;place-items:center;overflow:hidden;color:#fff;background:linear-gradient(120deg,rgba(40,18,24,.88),rgba(8,34,60,.62)),url('https://commons.wikimedia.org/wiki/Special:FilePath/North%20gate%20of%20BUCEA%20Daxing%20Campus%20%2820221013142115%29.jpg') center/cover no-repeat}
+    .hero:before,.hero:after{content:"";position:absolute;border-radius:50%;filter:blur(2px);opacity:.45;animation:float 8s ease-in-out infinite}.hero:before{width:340px;height:340px;background:#ffcf70;right:-90px;top:12%}.hero:after{width:250px;height:250px;background:#68bdf8;left:-70px;bottom:10%;animation-delay:-3s}@keyframes float{50%{transform:translateY(-28px) scale(1.08)}}
+    .hero-inner{position:relative;z-index:2;max-width:1100px;padding:56px 28px;text-align:center}.eyebrow{letter-spacing:.25em;font-size:14px;opacity:.9}.hero h1{font-size:clamp(38px,6vw,76px);line-height:1.05;margin:18px 0 16px}.hero p{font-size:clamp(17px,2vw,23px);max-width:820px;margin:0 auto 30px;line-height:1.8;color:#eef4ff}.actions{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}.btn{padding:13px 22px;border-radius:999px;background:#fff;color:#8b1626;font-weight:700;box-shadow:0 10px 30px rgba(0,0,0,.18)}.btn.secondary{background:rgba(255,255,255,.13);color:#fff;border:1px solid rgba(255,255,255,.55);backdrop-filter:blur(8px)}
+    .scroll-cue{position:absolute;z-index:3;bottom:24px;left:50%;transform:translateX(-50%);font-size:28px;animation:bounce 1.7s infinite}@keyframes bounce{50%{transform:translate(-50%,10px)}}
+    main{max-width:1180px;margin:auto;padding:70px 24px}.section-title{text-align:center;margin-bottom:34px}.section-title h2{font-size:34px;margin:0 0 10px}.section-title p{color:var(--muted);margin:0}.intro{display:grid;grid-template-columns:1.15fr .85fr;gap:28px;align-items:stretch}.card{background:var(--card);border-radius:22px;box-shadow:0 14px 40px rgba(17,24,39,.08);overflow:hidden}.intro-text{padding:34px}.intro-text h3{font-size:28px;margin-top:0}.intro-text p{line-height:1.9;color:#475467}.data{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:24px}.data div{padding:16px;border-radius:14px;background:#f8fafc;text-align:center}.data strong{display:block;font-size:24px;color:var(--red)}
+    .photo{min-height:360px;background:linear-gradient(rgba(0,0,0,.08),rgba(0,0,0,.25)),url('https://commons.wikimedia.org/wiki/Special:FilePath/Beijing%20University%20of%20Civil%20Engineering%20and%20Architecture%2C%20Xicheng%20campus%20%2820210923084026%29.jpg') center/cover no-repeat;position:relative}.photo span{position:absolute;bottom:18px;left:20px;color:#fff;font-weight:700;text-shadow:0 2px 10px #000}
+    .gallery{display:grid;grid-template-columns:1.25fr .75fr .75fr;gap:16px;margin-top:24px}.shot{height:260px;border-radius:20px;overflow:hidden;position:relative;background:#ddd}.shot img{width:100%;height:100%;object-fit:cover;transition:transform .7s}.shot:hover img{transform:scale(1.06)}.shot .label{position:absolute;left:14px;bottom:14px;background:rgba(0,0,0,.55);color:#fff;padding:7px 11px;border-radius:999px;font-size:13px;backdrop-filter:blur(5px)}
+    .animated{height:260px;border-radius:20px;position:relative;overflow:hidden;background:linear-gradient(145deg,#0f3b2c,#7fc86b);color:#fff}.field{position:absolute;inset:42% -10% -20%;background:repeating-linear-gradient(105deg,#4d8b43 0 30px,#73ad58 30px 60px);transform:perspective(500px) rotateX(56deg)}.sun{position:absolute;width:58px;height:58px;border-radius:50%;background:#ffd76a;right:30px;top:28px;box-shadow:0 0 0 18px rgba(255,215,106,.12);animation:pulse 2.6s infinite}@keyframes pulse{50%{transform:scale(1.14);box-shadow:0 0 0 30px rgba(255,215,106,.05)}}.cloud{position:absolute;top:55px;left:-140px;font-size:52px;animation:drift 11s linear infinite}@keyframes drift{to{left:110%}}.sensor{position:absolute;left:30px;bottom:28px;background:rgba(0,0,0,.25);padding:11px 14px;border-radius:12px;backdrop-filter:blur(5px)}
+    .entries{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:26px}.entry{padding:26px;border-radius:20px;background:#fff;box-shadow:0 12px 32px rgba(17,24,39,.07);transition:.25s}.entry:hover{transform:translateY(-5px)}.entry .icon{font-size:36px}.entry h3{margin:12px 0 8px}.entry p{color:var(--muted);line-height:1.7}.entry a{display:inline-block;margin-top:8px;color:var(--red);font-weight:700}
+    footer{text-align:center;padding:34px 20px;color:#667085;background:#fff;margin-top:60px}.credit{font-size:12px;margin-top:8px;color:#98a2b3}
+    @media(max-width:800px){.intro,.entries{grid-template-columns:1fr}.gallery{grid-template-columns:1fr}.data{grid-template-columns:1fr 1fr}.photo{min-height:300px}}
   </style>
 </head>
 <body>
-<div class="toolbar"><strong>北建大大兴校区 GIS</strong><button id="view2D">🗺️ 二维校园</button><button id="view3D">🏢 三维校园</button><button id="farm">🌱 开心农场</button></div>
-<div id="cesiumContainer"></div><div class="status" id="status">选择二维校园、三维校园或开心农场。</div>
-<script>
-const viewer=new Cesium.Viewer("cesiumContainer",{imageryProvider:false,terrainProvider:new Cesium.EllipsoidTerrainProvider(),animation:false,timeline:false,geocoder:false,homeButton:false,sceneModePicker:false,baseLayerPicker:false,navigationHelpButton:false});
-viewer.imageryLayers.addImageryProvider(new Cesium.OpenStreetMapImageryProvider({url:"https://tile.openstreetmap.org/"}));
-const CAMPUS={lon:116.292065,lat:39.75511}, FARM={lon:116.2960,lat:39.7518};
-const GLOBAL={destination:Cesium.Cartesian3.fromDegrees(105,35,18000000),orientation:{heading:0,pitch:Cesium.Math.toRadians(-90),roll:0}};
-const status=t=>document.getElementById("status").textContent=t; viewer.camera.setView(GLOBAL);
-let boundary,buildings,farmEntities=[];
-Cesium.GeoJsonDataSource.load("data/campus-boundary.geojson",{clampToGround:true,stroke:Cesium.Color.CYAN,strokeWidth:3,fill:Cesium.Color.CYAN.withAlpha(.08)}).then(ds=>{boundary=ds;viewer.dataSources.add(ds)});
-Cesium.GeoJsonDataSource.load("data/campus-buildings.geojson",{clampToGround:false}).then(ds=>{buildings=ds;viewer.dataSources.add(ds);styleBuildings(false);status("校园边界和建筑数据已加载。")}).catch(e=>{console.error(e);status("建筑数据加载失败，请刷新后重试。")});
-function h(e){if(!e.properties||!e.properties.height)return 18;return Number(e.properties.height.getValue(Cesium.JulianDate.now()))||18}
-function styleBuildings(is3D){if(!buildings)return;buildings.show=true;buildings.entities.values.forEach(e=>{if(!e.polygon)return;e.polygon.material=is3D?Cesium.Color.ROYALBLUE.withAlpha(.86):Cesium.Color.DODGERBLUE.withAlpha(.62);e.polygon.outline=true;e.polygon.outlineColor=Cesium.Color.WHITE;e.polygon.height=0;e.polygon.extrudedHeight=is3D?h(e):0})}
-function clearFarm(){farmEntities.forEach(e=>viewer.entities.remove(e));farmEntities=[]}
-function addFarm(){clearFarm(); const add=o=>{const e=viewer.entities.add(o);farmEntities.push(e);return e};
-  const beds=[[-.00115,.00045],[-.00055,.00045],[.00005,.00045],[.00065,.00045],[-.00115,-.00005],[-.00055,-.00005],[.00005,-.00005],[.00065,-.00005]];
-  beds.forEach((p,i)=>add({name:"种植区 "+(i+1),position:Cesium.Cartesian3.fromDegrees(FARM.lon+p[0],FARM.lat+p[1]),box:{dimensions:new Cesium.Cartesian3(42,28,2),material:(i%2?Cesium.Color.FORESTGREEN:Cesium.Color.YELLOWGREEN).withAlpha(.9),outline:true,outlineColor:Cesium.Color.DARKGREEN}}));
-  add({name:"智慧温室",position:Cesium.Cartesian3.fromDegrees(FARM.lon+.00115,FARM.lat+.00055,5),box:{dimensions:new Cesium.Cartesian3(55,32,10),material:Cesium.Color.LIGHTCYAN.withAlpha(.48),outline:true,outlineColor:Cesium.Color.WHITE},label:{text:"智慧温室",font:"15px sans-serif",pixelOffset:new Cesium.Cartesian2(0,-24),fillColor:Cesium.Color.WHITE,showBackground:true,backgroundColor:Cesium.Color.DARKGREEN.withAlpha(.7)}});
-  add({name:"农场小屋",position:Cesium.Cartesian3.fromDegrees(FARM.lon+.0012,FARM.lat-.00025,4),box:{dimensions:new Cesium.Cartesian3(25,20,8),material:Cesium.Color.SANDYBROWN,outline:true,outlineColor:Cesium.Color.WHITE}});
-  add({name:"虚拟气象站",position:Cesium.Cartesian3.fromDegrees(FARM.lon-.00125,FARM.lat+.0010,10),cylinder:{length:20,topRadius:1,bottomRadius:1.8,material:Cesium.Color.SILVER},label:{text:"气象站\n23.6°C  湿度58%",font:"14px sans-serif",pixelOffset:new Cesium.Cartesian2(0,-32),fillColor:Cesium.Color.WHITE,showBackground:true,backgroundColor:Cesium.Color.DARKSLATEGRAY.withAlpha(.8)}});
-  [[-.0008,.0008,"土壤湿度 42%"],[.0003,.0008,"光照 680 lx"],[.0008,-.0002,"空气湿度 58%"]].forEach(s=>add({position:Cesium.Cartesian3.fromDegrees(FARM.lon+s[0],FARM.lat+s[1],3),cylinder:{length:6,topRadius:.7,bottomRadius:.7,material:Cesium.Color.ORANGE},label:{text:s[2],font:"12px sans-serif",pixelOffset:new Cesium.Cartesian2(0,-18),fillColor:Cesium.Color.WHITE,showBackground:true,backgroundColor:Cesium.Color.DARKGREEN.withAlpha(.75)}}));
-}
-function hideFarm(){farmEntities.forEach(e=>e.show=false)} function showFarm(){farmEntities.forEach(e=>e.show=true)}
-function enter3D(){hideFarm();viewer.scene.morphTo3D(0);styleBuildings(true);viewer.camera.setView(GLOBAL);status("三维校园：建筑与二维校园共用同一份 GeoJSON，并按 height 属性拉伸。 ");viewer.camera.flyTo({destination:Cesium.Cartesian3.fromDegrees(CAMPUS.lon,CAMPUS.lat,1150),duration:4,orientation:{heading:Cesium.Math.toRadians(20),pitch:Cesium.Math.toRadians(-42),roll:0}})}
-function enter2D(){hideFarm();styleBuildings(false);viewer.scene.morphTo3D(0);viewer.camera.setView(GLOBAL);status("二维校园：进入校园后保持在校园范围，不再返回全球视角。");viewer.camera.flyTo({destination:Cesium.Cartesian3.fromDegrees(CAMPUS.lon,CAMPUS.lat,1900),duration:3.5,orientation:{heading:0,pitch:Cesium.Math.toRadians(-90),roll:0},complete:()=>{viewer.scene.morphTo2D(1);setTimeout(()=>viewer.camera.setView({destination:Cesium.Cartesian3.fromDegrees(CAMPUS.lon,CAMPUS.lat,1900)}),1100)}})}
-function enterFarm(){viewer.scene.morphTo3D(0);if(buildings)buildings.show=false;addFarm();showFarm();status("开心农场 V0.1：直接进入独立虚拟农场，含种植区、智慧温室、小屋、气象站和模拟传感器。");viewer.camera.setView({destination:Cesium.Cartesian3.fromDegrees(FARM.lon,FARM.lat,520),orientation:{heading:Cesium.Math.toRadians(25),pitch:Cesium.Math.toRadians(-42),roll:0}})}
-document.getElementById("view2D").onclick=enter2D;document.getElementById("view3D").onclick=enter3D;document.getElementById("farm").onclick=enterFarm;
-</script></body></html>
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="eyebrow">BEIJING UNIVERSITY OF CIVIL ENGINEERING AND ARCHITECTURE</div>
+      <h1>北京建筑大学<br>大兴校区 · 校园数字空间</h1>
+      <p>以校园为真实地理载体，将二维GIS、三维GIS与智慧农场虚拟实验场景连接起来，形成可浏览、可教学、可扩展的数字校园入口。</p>
+      <div class="actions"><a class="btn" href="gis.html">进入校园GIS</a><a class="btn secondary" href="#about">了解学校</a></div>
+    </div>
+    <div class="scroll-cue">⌄</div>
+  </section>
+
+  <main>
+    <section id="about">
+      <div class="section-title"><h2>走进北京建筑大学</h2><p>建筑、城市、空间与技术在这里交汇</p></div>
+      <div class="intro">
+        <article class="card intro-text">
+          <h3>一所以建筑与城市建设为鲜明特色的高校</h3>
+          <p>北京建筑大学以服务首都城市建设与发展为重要使命，学科和专业覆盖建筑、土木、测绘、环境、智能建造与城市治理等方向。大兴校区拥有图书馆、综合体育馆、教学与实验建筑等现代校园空间，为三维GIS、数字孪生与空间智能教学提供了天然案例。</p>
+          <div class="data"><div><strong>1936</strong>办学历史起点</div><div><strong>49.02万㎡</strong>校舍建筑总面积</div><div><strong>17</strong>国家级一流专业建设点</div></div>
+        </article>
+        <div class="card photo"><span>北京建筑大学校园</span></div>
+      </div>
+
+      <div class="gallery">
+        <div class="shot"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/North%20gate%20of%20BUCEA%20Daxing%20Campus%20%2820221013142115%29.jpg" alt="北京建筑大学大兴校区北门"><div class="label">大兴校区北门</div></div>
+        <div class="shot"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Beijing%20University%20of%20Civil%20Engineering%20and%20Architecture%2C%20Xicheng%20campus%20%2820210923084026%29.jpg" alt="北京建筑大学校园"><div class="label">校园建筑</div></div>
+        <div class="animated"><div class="sun"></div><div class="cloud">☁️</div><div class="field"></div><div class="sensor">🌱 智慧农场动态场景<br>温度 23.6°C · 湿度 58%</div></div>
+      </div>
+    </section>
+
+    <section style="margin-top:78px">
+      <div class="section-title"><h2>校园数字空间入口</h2><p>首页只做学校介绍，地图与三维场景从这里进入</p></div>
+      <div class="entries">
+        <article class="entry"><div class="icon">🗺️</div><h3>二维校园GIS</h3><p>校园边界、建筑轮廓、道路、绿地与专题信息的二维空间表达。</p><a href="gis.html">进入二维/三维GIS →</a></article>
+        <article class="entry"><div class="icon">🏢</div><h3>三维校园GIS</h3><p>与二维GIS共用同一套数据，通过高度、场景与模型形成三维校园。</p><a href="gis.html">进入三维校园 →</a></article>
+        <article class="entry"><div class="icon">🌱</div><h3>开心农场</h3><p>独立虚拟实验场景，逐步加入温室、气象站、模拟传感器与IoT接口。</p><a href="gis.html">进入虚拟农场 →</a></article>
+      </div>
+    </section>
+  </main>
+
+  <footer>北京建筑大学大兴校区 · Campus GIS Teaching Prototype<div class="credit">校园照片来源：Wikimedia Commons（CC BY-SA）；学校数据参考北京建筑大学官方网站公开信息。</div></footer>
+</body>
+</html>
