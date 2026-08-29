@@ -1,0 +1,48 @@
+{
+  "type": "FeatureCollection",
+  "name": "BUCEA_Daxing_Campus_Buildings_Schematic_V1",
+  "crs_note": "WGS84 longitude/latitude",
+  "data_note": "第一批校园建筑轮廓教学原型数据，根据公开地图目视关系与校园中心位置概略建立，非测绘成果；二维与三维共用同一份数据，后续可直接替换为可靠开放数据。",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {"id":"bldg-001","name":"教学建筑A","category":"teaching","height":24,"accuracy":"schematic","replaceable":true},
+      "geometry": {"type":"Polygon","coordinates":[[[116.2884,39.7582],[116.2902,39.7582],[116.2902,39.7590],[116.2884,39.7590],[116.2884,39.7582]]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {"id":"bldg-002","name":"教学建筑B","category":"teaching","height":30,"accuracy":"schematic","replaceable":true},
+      "geometry": {"type":"Polygon","coordinates":[[[116.2910,39.7580],[116.2930,39.7580],[116.2930,39.7589],[116.2910,39.7589],[116.2910,39.7580]]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {"id":"bldg-003","name":"综合建筑","category":"academic","height":36,"accuracy":"schematic","replaceable":true},
+      "geometry": {"type":"Polygon","coordinates":[[[116.2938,39.7575],[116.2960,39.7575],[116.2960,39.7587],[116.2938,39.7587],[116.2938,39.7575]]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {"id":"bldg-004","name":"图书与公共建筑","category":"public","height":28,"accuracy":"schematic","replaceable":true},
+      "geometry": {"type":"Polygon","coordinates":[[[116.2900,39.7557],[116.2926,39.7557],[116.2926,39.7568],[116.2900,39.7568],[116.2900,39.7557]]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {"id":"bldg-005","name":"实验建筑","category":"lab","height":24,"accuracy":"schematic","replaceable":true},
+      "geometry": {"type":"Polygon","coordinates":[[[116.2935,39.7554],[116.2953,39.7554],[116.2953,39.7565],[116.2935,39.7565],[116.2935,39.7554]]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {"id":"bldg-006","name":"生活服务建筑","category":"service","height":18,"accuracy":"schematic","replaceable":true},
+      "geometry": {"type":"Polygon","coordinates":[[[116.2875,39.7534],[116.2894,39.7534],[116.2894,39.7545],[116.2875,39.7545],[116.2875,39.7534]]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {"id":"bldg-007","name":"宿舍建筑A","category":"dormitory","height":33,"accuracy":"schematic","replaceable":true},
+      "geometry": {"type":"Polygon","coordinates":[[[116.2902,39.7515],[116.2916,39.7515],[116.2916,39.7530],[116.2902,39.7530],[116.2902,39.7515]]]}
+    },
+    {
+      "type": "Feature",
+      "properties": {"id":"bldg-008","name":"宿舍建筑B","category":"dormitory","height":33,"accuracy":"schematic","replaceable":true},
+      "geometry": {"type":"Polygon","coordinates":[[[116.2921,39.7514],[116.2935,39.7514],[116.2935,39.7529],[116.2921,39.7529],[116.2921,39.7514]]]}
+    }
+  ]
+}
