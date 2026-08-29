@@ -7,160 +7,38 @@
   <script src="https://cesium.com/downloads/cesiumjs/releases/1.144/Build/Cesium/Cesium.js"></script>
   <link rel="stylesheet" href="https://cesium.com/downloads/cesiumjs/releases/1.144/Build/Cesium/Widgets/widgets.css" />
   <style>
-    html, body, #cesiumContainer { width:100%; height:100%; margin:0; padding:0; overflow:hidden; }
-    body { font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
-    .toolbar { position:absolute; z-index:10; top:12px; left:12px; right:12px; display:flex; flex-wrap:wrap; gap:8px; align-items:center; padding:9px 11px; border-radius:9px; background:rgba(20,25,32,.84); color:#fff; }
-    .toolbar strong { margin-right:5px; font-size:14px; }
-    .toolbar button { border:1px solid rgba(255,255,255,.35); border-radius:6px; padding:7px 10px; background:rgba(255,255,255,.12); color:#fff; cursor:pointer; }
-    .toolbar button:hover { background:rgba(255,255,255,.22); }
-    .status { position:absolute; z-index:10; left:12px; bottom:12px; max-width:560px; padding:8px 11px; border-radius:8px; background:rgba(20,25,32,.78); color:#fff; font-size:13px; line-height:1.5; }
+    html,body,#cesiumContainer{width:100%;height:100%;margin:0;padding:0;overflow:hidden} body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+    .toolbar{position:absolute;z-index:10;top:12px;left:12px;display:flex;gap:8px;padding:9px 11px;border-radius:9px;background:rgba(20,25,32,.84);color:#fff}
+    .toolbar button{border:1px solid rgba(255,255,255,.35);border-radius:6px;padding:7px 10px;background:rgba(255,255,255,.12);color:#fff;cursor:pointer}.toolbar button:hover{background:rgba(255,255,255,.22)}
+    .status{position:absolute;z-index:10;left:12px;bottom:12px;max-width:600px;padding:8px 11px;border-radius:8px;background:rgba(20,25,32,.78);color:#fff;font-size:13px;line-height:1.5}
   </style>
 </head>
 <body>
-  <div class="toolbar">
-    <strong>北建大大兴校区 GIS</strong>
-    <button id="view2D" type="button">🗺️ 二维校园</button>
-    <button id="view3D" type="button">🏢 三维校园</button>
-    <button id="farm" type="button">🌱 开心农场</button>
-  </div>
-  <div id="cesiumContainer"></div>
-  <div class="status" id="status">请选择入口：二维校园 / 三维校园 / 开心农场。二维与三维入口共用同一套校园空间数据。</div>
-
-  <script>
-    const viewer = new Cesium.Viewer("cesiumContainer", {
-      imageryProvider:false,
-      terrainProvider:new Cesium.EllipsoidTerrainProvider(),
-      animation:false, timeline:false, geocoder:false, homeButton:false,
-      sceneModePicker:false, baseLayerPicker:false, navigationHelpButton:false
-    });
-
-    viewer.imageryLayers.addImageryProvider(
-      new Cesium.OpenStreetMapImageryProvider({ url:"https://tile.openstreetmap.org/" })
-    );
-
-    const CAMPUS = { lon:116.292065, lat:39.75511 };
-    const FARM = { lon:116.2960, lat:39.7518 };
-    const GLOBAL_VIEW = {
-      destination: Cesium.Cartesian3.fromDegrees(105, 35, 18000000),
-      orientation: { heading:0, pitch:Cesium.Math.toRadians(-90), roll:0 }
-    };
-
-    function setStatus(text){ document.getElementById("status").textContent=text; }
-
-    viewer.camera.setView(GLOBAL_VIEW);
-
-    viewer.entities.add({
-      name:"北京建筑大学大兴校区",
-      position:Cesium.Cartesian3.fromDegrees(CAMPUS.lon,CAMPUS.lat),
-      point:{ pixelSize:9, color:Cesium.Color.ORANGE, outlineColor:Cesium.Color.WHITE, outlineWidth:2 },
-      label:{ text:"北京建筑大学大兴校区", font:"16px sans-serif", pixelOffset:new Cesium.Cartesian2(0,-24), fillColor:Cesium.Color.WHITE, outlineColor:Cesium.Color.BLACK, outlineWidth:3, style:Cesium.LabelStyle.FILL_AND_OUTLINE }
-    });
-
-    viewer.entities.add({
-      name:"开心农场（规划入口）",
-      position:Cesium.Cartesian3.fromDegrees(FARM.lon,FARM.lat),
-      point:{ pixelSize:9, color:Cesium.Color.LIMEGREEN, outlineColor:Cesium.Color.WHITE, outlineWidth:2 },
-      label:{ text:"开心农场 · 虚实融合实验场景", font:"14px sans-serif", pixelOffset:new Cesium.Cartesian2(0,-22), fillColor:Cesium.Color.WHITE, outlineColor:Cesium.Color.BLACK, outlineWidth:3, style:Cesium.LabelStyle.FILL_AND_OUTLINE }
-    });
-
-    let campusBoundary;
-    let campusBuildings;
-
-    Cesium.GeoJsonDataSource.load("data/campus-boundary.geojson", {
-      clampToGround:true,
-      stroke:Cesium.Color.CYAN,
-      strokeWidth:3,
-      fill:Cesium.Color.CYAN.withAlpha(0.10)
-    }).then(dataSource => {
-      campusBoundary = dataSource;
-      viewer.dataSources.add(dataSource);
-    }).catch(error => {
-      console.error(error);
-      setStatus("校园边界数据加载失败，但基础底图仍可使用。");
-    });
-
-    Cesium.GeoJsonDataSource.load("data/campus-buildings.geojson", {
-      clampToGround:false,
-      stroke:Cesium.Color.WHITE,
-      strokeWidth:1,
-      fill:Cesium.Color.DODGERBLUE.withAlpha(0.62)
-    }).then(dataSource => {
-      campusBuildings = dataSource;
-      viewer.dataSources.add(dataSource);
-      styleBuildings(false);
-      setStatus("校园边界与第一批建筑轮廓已加载。二维和三维使用同一份 campus-buildings.geojson。");
-    }).catch(error => {
-      console.error(error);
-      setStatus("校园建筑数据加载失败，但校园边界和基础底图仍可使用。");
-    });
-
-    function getBuildingHeight(entity){
-      if (!entity.properties || !entity.properties.height) return 18;
-      const value = entity.properties.height.getValue(Cesium.JulianDate.now());
-      return Number(value) || 18;
-    }
-
-    function styleBuildings(is3D){
-      if (!campusBuildings) return;
-      campusBuildings.entities.values.forEach(entity => {
-        if (!entity.polygon) return;
-        entity.polygon.material = is3D
-          ? Cesium.Color.ROYALBLUE.withAlpha(0.78)
-          : Cesium.Color.DODGERBLUE.withAlpha(0.58);
-        entity.polygon.outline = true;
-        entity.polygon.outlineColor = Cesium.Color.WHITE.withAlpha(0.9);
-        entity.polygon.height = 0;
-        entity.polygon.extrudedHeight = is3D ? getBuildingHeight(entity) : 0;
-      });
-    }
-
-    function resetToGlobal(){
-      viewer.scene.morphTo3D(0);
-      viewer.camera.setView(GLOBAL_VIEW);
-    }
-
-    function enter3D(){
-      resetToGlobal();
-      styleBuildings(true);
-      setStatus("三维校园：全球 → 北京 → 大兴 → 北建大。第一批建筑轮廓已按同一 GeoJSON 中的 height 属性拉伸显示。");
-      viewer.camera.flyTo({
-        destination:Cesium.Cartesian3.fromDegrees(CAMPUS.lon,CAMPUS.lat,1800),
-        duration:4.2,
-        orientation:{ heading:Cesium.Math.toRadians(10), pitch:Cesium.Math.toRadians(-62), roll:0 }
-      });
-    }
-
-    function enter2D(){
-      resetToGlobal();
-      styleBuildings(false);
-      setStatus("二维校园：全球 → 北京 → 大兴 → 北建大。建筑以平面轮廓显示，与三维场景共用同一份 campus-buildings.geojson。");
-      viewer.camera.flyTo({
-        destination:Cesium.Cartesian3.fromDegrees(CAMPUS.lon,CAMPUS.lat,2400),
-        duration:3.6,
-        orientation:{ heading:0, pitch:Cesium.Math.toRadians(-78), roll:0 },
-        complete:() => {
-          viewer.scene.morphTo2D(1.0);
-          window.setTimeout(() => {
-            viewer.camera.flyTo({ destination:Cesium.Cartesian3.fromDegrees(CAMPUS.lon,CAMPUS.lat,2600), duration:1.2 });
-          }, 1050);
-        }
-      });
-    }
-
-    function enterFarm(){
-      resetToGlobal();
-      styleBuildings(true);
-      viewer.camera.flyTo({
-        destination:Cesium.Cartesian3.fromDegrees(FARM.lon,FARM.lat,650),
-        duration:3.6,
-        orientation:{ heading:Cesium.Math.toRadians(20), pitch:Cesium.Math.toRadians(-55), roll:0 }
-      });
-      setStatus("开心农场：独立虚拟实验场景入口；当前仍保留概略位置，后续单独加入农田、作物、气象站与模拟传感器。");
-    }
-
-    document.getElementById("view2D").addEventListener("click", enter2D);
-    document.getElementById("view3D").addEventListener("click", enter3D);
-    document.getElementById("farm").addEventListener("click", enterFarm);
-  </script>
-</body>
-</html>
+<div class="toolbar"><strong>北建大大兴校区 GIS</strong><button id="view2D">🗺️ 二维校园</button><button id="view3D">🏢 三维校园</button><button id="farm">🌱 开心农场</button></div>
+<div id="cesiumContainer"></div><div class="status" id="status">选择二维校园、三维校园或开心农场。</div>
+<script>
+const viewer=new Cesium.Viewer("cesiumContainer",{imageryProvider:false,terrainProvider:new Cesium.EllipsoidTerrainProvider(),animation:false,timeline:false,geocoder:false,homeButton:false,sceneModePicker:false,baseLayerPicker:false,navigationHelpButton:false});
+viewer.imageryLayers.addImageryProvider(new Cesium.OpenStreetMapImageryProvider({url:"https://tile.openstreetmap.org/"}));
+const CAMPUS={lon:116.292065,lat:39.75511}, FARM={lon:116.2960,lat:39.7518};
+const GLOBAL={destination:Cesium.Cartesian3.fromDegrees(105,35,18000000),orientation:{heading:0,pitch:Cesium.Math.toRadians(-90),roll:0}};
+const status=t=>document.getElementById("status").textContent=t; viewer.camera.setView(GLOBAL);
+let boundary,buildings,farmEntities=[];
+Cesium.GeoJsonDataSource.load("data/campus-boundary.geojson",{clampToGround:true,stroke:Cesium.Color.CYAN,strokeWidth:3,fill:Cesium.Color.CYAN.withAlpha(.08)}).then(ds=>{boundary=ds;viewer.dataSources.add(ds)});
+Cesium.GeoJsonDataSource.load("data/campus-buildings.geojson",{clampToGround:false}).then(ds=>{buildings=ds;viewer.dataSources.add(ds);styleBuildings(false);status("校园边界和建筑数据已加载。")}).catch(e=>{console.error(e);status("建筑数据加载失败，请刷新后重试。")});
+function h(e){if(!e.properties||!e.properties.height)return 18;return Number(e.properties.height.getValue(Cesium.JulianDate.now()))||18}
+function styleBuildings(is3D){if(!buildings)return;buildings.show=true;buildings.entities.values.forEach(e=>{if(!e.polygon)return;e.polygon.material=is3D?Cesium.Color.ROYALBLUE.withAlpha(.86):Cesium.Color.DODGERBLUE.withAlpha(.62);e.polygon.outline=true;e.polygon.outlineColor=Cesium.Color.WHITE;e.polygon.height=0;e.polygon.extrudedHeight=is3D?h(e):0})}
+function clearFarm(){farmEntities.forEach(e=>viewer.entities.remove(e));farmEntities=[]}
+function addFarm(){clearFarm(); const add=o=>{const e=viewer.entities.add(o);farmEntities.push(e);return e};
+  const beds=[[-.00115,.00045],[-.00055,.00045],[.00005,.00045],[.00065,.00045],[-.00115,-.00005],[-.00055,-.00005],[.00005,-.00005],[.00065,-.00005]];
+  beds.forEach((p,i)=>add({name:"种植区 "+(i+1),position:Cesium.Cartesian3.fromDegrees(FARM.lon+p[0],FARM.lat+p[1]),box:{dimensions:new Cesium.Cartesian3(42,28,2),material:(i%2?Cesium.Color.FORESTGREEN:Cesium.Color.YELLOWGREEN).withAlpha(.9),outline:true,outlineColor:Cesium.Color.DARKGREEN}}));
+  add({name:"智慧温室",position:Cesium.Cartesian3.fromDegrees(FARM.lon+.00115,FARM.lat+.00055,5),box:{dimensions:new Cesium.Cartesian3(55,32,10),material:Cesium.Color.LIGHTCYAN.withAlpha(.48),outline:true,outlineColor:Cesium.Color.WHITE},label:{text:"智慧温室",font:"15px sans-serif",pixelOffset:new Cesium.Cartesian2(0,-24),fillColor:Cesium.Color.WHITE,showBackground:true,backgroundColor:Cesium.Color.DARKGREEN.withAlpha(.7)}});
+  add({name:"农场小屋",position:Cesium.Cartesian3.fromDegrees(FARM.lon+.0012,FARM.lat-.00025,4),box:{dimensions:new Cesium.Cartesian3(25,20,8),material:Cesium.Color.SANDYBROWN,outline:true,outlineColor:Cesium.Color.WHITE}});
+  add({name:"虚拟气象站",position:Cesium.Cartesian3.fromDegrees(FARM.lon-.00125,FARM.lat+.0010,10),cylinder:{length:20,topRadius:1,bottomRadius:1.8,material:Cesium.Color.SILVER},label:{text:"气象站\n23.6°C  湿度58%",font:"14px sans-serif",pixelOffset:new Cesium.Cartesian2(0,-32),fillColor:Cesium.Color.WHITE,showBackground:true,backgroundColor:Cesium.Color.DARKSLATEGRAY.withAlpha(.8)}});
+  [[-.0008,.0008,"土壤湿度 42%"],[.0003,.0008,"光照 680 lx"],[.0008,-.0002,"空气湿度 58%"]].forEach(s=>add({position:Cesium.Cartesian3.fromDegrees(FARM.lon+s[0],FARM.lat+s[1],3),cylinder:{length:6,topRadius:.7,bottomRadius:.7,material:Cesium.Color.ORANGE},label:{text:s[2],font:"12px sans-serif",pixelOffset:new Cesium.Cartesian2(0,-18),fillColor:Cesium.Color.WHITE,showBackground:true,backgroundColor:Cesium.Color.DARKGREEN.withAlpha(.75)}}));
+}
+function hideFarm(){farmEntities.forEach(e=>e.show=false)} function showFarm(){farmEntities.forEach(e=>e.show=true)}
+function enter3D(){hideFarm();viewer.scene.morphTo3D(0);styleBuildings(true);viewer.camera.setView(GLOBAL);status("三维校园：建筑与二维校园共用同一份 GeoJSON，并按 height 属性拉伸。 ");viewer.camera.flyTo({destination:Cesium.Cartesian3.fromDegrees(CAMPUS.lon,CAMPUS.lat,1150),duration:4,orientation:{heading:Cesium.Math.toRadians(20),pitch:Cesium.Math.toRadians(-42),roll:0}})}
+function enter2D(){hideFarm();styleBuildings(false);viewer.scene.morphTo3D(0);viewer.camera.setView(GLOBAL);status("二维校园：进入校园后保持在校园范围，不再返回全球视角。");viewer.camera.flyTo({destination:Cesium.Cartesian3.fromDegrees(CAMPUS.lon,CAMPUS.lat,1900),duration:3.5,orientation:{heading:0,pitch:Cesium.Math.toRadians(-90),roll:0},complete:()=>{viewer.scene.morphTo2D(1);setTimeout(()=>viewer.camera.setView({destination:Cesium.Cartesian3.fromDegrees(CAMPUS.lon,CAMPUS.lat,1900)}),1100)}})}
+function enterFarm(){viewer.scene.morphTo3D(0);if(buildings)buildings.show=false;addFarm();showFarm();status("开心农场 V0.1：直接进入独立虚拟农场，含种植区、智慧温室、小屋、气象站和模拟传感器。");viewer.camera.setView({destination:Cesium.Cartesian3.fromDegrees(FARM.lon,FARM.lat,520),orientation:{heading:Cesium.Math.toRadians(25),pitch:Cesium.Math.toRadians(-42),roll:0}})}
+document.getElementById("view2D").onclick=enter2D;document.getElementById("view3D").onclick=enter3D;document.getElementById("farm").onclick=enterFarm;
+</script></body></html>
