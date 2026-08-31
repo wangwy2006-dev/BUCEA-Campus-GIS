@@ -1,0 +1,49 @@
+name: Cache exact campus boundary
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/cache-campus-boundary.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  cache-boundary:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download exact OSM boundary
+        run: |
+          python - <<'PY'
+          import json, urllib.request, xml.etree.ElementTree as ET
+          from pathlib import Path
+          way_id=546474045
+          req=urllib.request.Request(
+              f'https://api.openstreetmap.org/api/0.6/way/{way_id}/full',
+              headers={'User-Agent':'BUCEA-Campus-GIS educational snapshot/1.0'})
+          with urllib.request.urlopen(req, timeout=45) as r:
+              root=ET.fromstring(r.read())
+          nodes={int(n.attrib['id']):[float(n.attrib['lon']),float(n.attrib['lat'])] for n in root.findall('node')}
+          way=next(w for w in root.findall('way') if int(w.attrib['id'])==way_id)
+          ring=[nodes[int(nd.attrib['ref'])] for nd in way.findall('nd')]
+          if ring[0]!=ring[-1]: ring.append(ring[0])
+          tags={t.attrib['k']:t.attrib['v'] for t in way.findall('tag')}
+          geo={'type':'FeatureCollection','name':'BUCEA_Daxing_Campus_Boundary_OSM','source':'OpenStreetMap','license':'ODbL 1.0','osm_way_id':way_id,'features':[{'type':'Feature','properties':{'osm_id':way_id,**tags},'geometry':{'type':'Polygon','coordinates':[ring]}}]}
+          Path('data').mkdir(exist_ok=True)
+          Path('data/osm-campus-boundary.geojson').write_text(json.dumps(geo,ensure_ascii=False,separators=(',',':')),encoding='utf-8')
+          print('vertices=',len(ring))
+          PY
+      - name: Commit boundary snapshot
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/osm-campus-boundary.geojson
+          if git diff --cached --quiet; then
+            echo "No boundary changes"
+          else
+            git commit -m "data: cache exact OSM campus boundary"
+            git push
+          fi
