@@ -1,0 +1,109 @@
+name: Update campus OSM snapshot
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/update-osm-data.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch campus OSM data
+        run: |
+          python - <<'PY'
+          import json, urllib.parse, urllib.request, xml.etree.ElementTree as ET
+          from pathlib import Path
+
+          WAY_ID = 546474045
+          UA = {'User-Agent': 'BUCEA-Campus-GIS educational snapshot/1.0'}
+          out = Path('data')
+          out.mkdir(exist_ok=True)
+
+          def get(url, data=None, headers=None):
+              h = dict(UA)
+              if headers: h.update(headers)
+              req = urllib.request.Request(url, data=data, headers=h)
+              with urllib.request.urlopen(req, timeout=60) as r:
+                  return r.read()
+
+          # 1) Exact campus boundary from OSM way + referenced nodes.
+          xml = get(f'https://api.openstreetmap.org/api/0.6/way/{WAY_ID}/full')
+          root = ET.fromstring(xml)
+          nodes = {int(n.attrib['id']): [float(n.attrib['lon']), float(n.attrib['lat'])]
+                   for n in root.findall('node')}
+          way = next(w for w in root.findall('way') if int(w.attrib['id']) == WAY_ID)
+          ring = [nodes[int(nd.attrib['ref'])] for nd in way.findall('nd')]
+          if ring and ring[0] != ring[-1]: ring.append(ring[0])
+          tags = {t.attrib['k']: t.attrib['v'] for t in way.findall('tag')}
+          boundary = {
+              'type':'FeatureCollection',
+              'name':'BUCEA_Daxing_Campus_Boundary_OSM',
+              'source':'OpenStreetMap',
+              'license':'ODbL 1.0',
+              'osm_way_id':WAY_ID,
+              'features':[{'type':'Feature','properties':{'osm_id':WAY_ID, **tags},
+                           'geometry':{'type':'Polygon','coordinates':[ring]}}]
+          }
+          (out/'osm-campus-boundary.geojson').write_text(json.dumps(boundary, ensure_ascii=False, separators=(',',':')), encoding='utf-8')
+
+          lons=[p[0] for p in ring]; lats=[p[1] for p in ring]
+          w,s,e,n=min(lons),min(lats),max(lons),max(lats)
+          pad=0.0004
+
+          # 2) One compact Overpass snapshot for current base layers.
+          q=f'''[out:json][timeout:45];(
+            way["building"]({s-pad},{w-pad},{n+pad},{e+pad});
+            way["highway"]({s-pad},{w-pad},{n+pad},{e+pad});
+            way["leisure"="pitch"]({s-pad},{w-pad},{n+pad},{e+pad});
+            way["leisure"="track"]({s-pad},{w-pad},{n+pad},{e+pad});
+            way["landuse"]({s-pad},{w-pad},{n+pad},{e+pad});
+            way["leisure"="garden"]({s-pad},{w-pad},{n+pad},{e+pad});
+            way["leisure"="park"]({s-pad},{w-pad},{n+pad},{e+pad});
+          );out body;>;out skel qt;'''
+          payload=urllib.parse.urlencode({'data':q}).encode()
+          raw=json.loads(get('https://overpass-api.de/api/interpreter', payload,
+                             {'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'}))
+          onodes={x['id']:[x['lon'],x['lat']] for x in raw.get('elements',[]) if x.get('type')=='node'}
+
+          buildings=[]; lines=[]; areas=[]
+          for x in raw.get('elements',[]):
+              if x.get('type')!='way' or not x.get('tags'): continue
+              coords=[onodes[i] for i in x.get('nodes',[]) if i in onodes]
+              if len(coords)<2: continue
+              props={'osm_id':x['id'], **x['tags']}
+              closed=len(coords)>=4 and coords[0]==coords[-1]
+              if 'building' in x['tags'] and closed:
+                  buildings.append({'type':'Feature','properties':props,'geometry':{'type':'Polygon','coordinates':[coords]}})
+              elif 'highway' in x['tags']:
+                  lines.append({'type':'Feature','properties':props,'geometry':{'type':'LineString','coordinates':coords}})
+              elif closed and any(k in x['tags'] for k in ('landuse','leisure')):
+                  areas.append({'type':'Feature','properties':props,'geometry':{'type':'Polygon','coordinates':[coords]}})
+
+          meta={'source':'OpenStreetMap via Overpass','license':'ODbL 1.0','campus_osm_way_id':WAY_ID}
+          for filename, name, feats in [
+              ('osm-buildings.geojson','BUCEA_OSM_Buildings',buildings),
+              ('osm-roads.geojson','BUCEA_OSM_Roads',lines),
+              ('osm-areas.geojson','BUCEA_OSM_Areas',areas)]:
+              fc={'type':'FeatureCollection','name':name,**meta,'features':feats}
+              (out/filename).write_text(json.dumps(fc, ensure_ascii=False, separators=(',',':')), encoding='utf-8')
+
+          print(f'boundary=1 buildings={len(buildings)} roads={len(lines)} areas={len(areas)}')
+          PY
+      - name: Commit snapshot
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/osm-campus-boundary.geojson data/osm-buildings.geojson data/osm-roads.geojson data/osm-areas.geojson
+          if git diff --cached --quiet; then
+            echo "No data changes"
+          else
+            git commit -m "data: cache campus OSM snapshot"
+            git push
+          fi
