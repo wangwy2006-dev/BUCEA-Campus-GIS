@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>开心农场 · 三维智慧农业实验场</title>
+<script src="https://cesium.com/downloads/cesiumjs/releases/1.144/Build/Cesium/Cesium.js"></script>
+<link rel="stylesheet" href="https://cesium.com/downloads/cesiumjs/releases/1.144/Build/Cesium/Widgets/widgets.css">
+<style>
+html,body,#farm{width:100%;height:100%;margin:0;overflow:hidden;font-family:Arial,"Microsoft YaHei",sans-serif;background:#9ed7ff}
+.panel{position:absolute;z-index:10;top:14px;left:14px;max-width:390px;padding:14px 16px;border-radius:14px;background:#17352ee8;color:#fff;box-shadow:0 8px 30px #0003}.panel h1{font-size:21px;margin:0 0 7px}.panel p{font-size:13px;line-height:1.6;margin:5px 0;color:#d9f4e9}.panel button{margin:7px 5px 0 0;padding:8px 11px;border:0;border-radius:8px;background:#fff;color:#17352e;cursor:pointer}.status{position:absolute;z-index:10;right:14px;top:14px;width:230px;padding:12px 14px;border-radius:12px;background:#102b25df;color:#fff;font-size:13px;line-height:1.8}.legend{position:absolute;z-index:10;left:14px;bottom:14px;padding:10px 13px;border-radius:10px;background:#102b25df;color:#fff;font-size:12px}
+</style>
+</head>
+<body>
+<div id="farm"></div>
+<div class="panel"><h1>🌱 开心农场 · 真三维实验场</h1><p>这是独立的 Cesium 三维虚拟农场，不是二维贴图。鼠标左键旋转、滚轮缩放、中键/右键改变观察角度；可围绕地块自由观察。</p><button onclick="location.href='index.html'">⌂ 学校首页</button><button onclick="location.href='gis.html'">返回校园 GIS</button><button onclick="resetView()">重置视角</button></div>
+<div class="status" id="status"><b>模拟 IoT 状态</b><br>🌡️ 空气温度：23.6 °C<br>💧 土壤湿度：42 %<br>☀️ 光照：680 lx<br>🌬️ 风速：2.1 m/s<br>🚿 自动灌溉：待机</div>
+<div class="legend">四块试验田 · 智慧温室 · 水箱 · 气象站 · 模拟传感器</div>
+<script>
+const viewer=new Cesium.Viewer('farm',{imageryProvider:false,terrainProvider:new Cesium.EllipsoidTerrainProvider(),animation:false,timeline:false,geocoder:false,homeButton:false,sceneModePicker:false,baseLayerPicker:false,navigationHelpButton:false,skyAtmosphere:true});
+viewer.scene.globe.show=false;viewer.scene.backgroundColor=Cesium.Color.fromCssColorString('#9ed7ff');viewer.scene.screenSpaceCameraController.enableCollisionDetection=false;
+const baseLon=116.2820,baseLat=39.7448;
+function rect(lon,lat,w,h,z,color){viewer.entities.add({position:Cesium.Cartesian3.fromDegrees(lon,lat,z/2),box:{dimensions:new Cesium.Cartesian3(w,h,z),material:color,outline:true,outlineColor:Cesium.Color.WHITE.withAlpha(.45)}})}
+function sensor(lon,lat,label){viewer.entities.add({position:Cesium.Cartesian3.fromDegrees(lon,lat,7),cylinder:{length:14,topRadius:.35,bottomRadius:.55,material:Cesium.Color.DARKSLATEGRAY},label:{text:label,font:'14px Microsoft YaHei',fillColor:Cesium.Color.WHITE,showBackground:true,backgroundColor:Cesium.Color.fromCssColorString('#17352e').withAlpha(.82),pixelOffset:new Cesium.Cartesian2(0,-35),distanceDisplayCondition:new Cesium.DistanceDisplayCondition(0,1800)}})}
+// 草地基座
+rect(baseLon,baseLat,240,190,2,Cesium.Color.fromCssColorString('#72a957'));
+// 田埂和四块试验田
+const beds=[[-.00055,.00028,'向日葵','#6b4428'],[.00018,.00028,'蔬菜','#70452a'],[-.00055,-.00035,'玉米','#674126'],[.00018,-.00035,'番茄','#71452b']];
+beds.forEach((b,i)=>{rect(baseLon+b[0],baseLat+b[1],62,42,3,Cesium.Color.fromCssColorString(b[3]));viewer.entities.add({position:Cesium.Cartesian3.fromDegrees(baseLon+b[0],baseLat+b[1],5),label:{text:b[2],font:'bold 16px Microsoft YaHei',fillColor:Cesium.Color.WHITE,showBackground:true,backgroundColor:Cesium.Color.BLACK.withAlpha(.45),pixelOffset:new Cesium.Cartesian2(0,-6)}});for(let r=-2;r<=2;r++){for(let c=-3;c<=3;c++){const lon=baseLon+b[0]+c*.000055,lat=baseLat+b[1]+r*.000055;viewer.entities.add({position:Cesium.Cartesian3.fromDegrees(lon,lat,7),cylinder:{length:9,topRadius:.5,bottomRadius:.75,material:[Cesium.Color.GOLD,Cesium.Color.LIMEGREEN,Cesium.Color.YELLOWGREEN,Cesium.Color.TOMATO][i]}})}}});
+// 温室：半透明主体 + 屋顶
+rect(baseLon+.00072,baseLat+.00038,55,34,22,Cesium.Color.LIGHTCYAN.withAlpha(.48));viewer.entities.add({position:Cesium.Cartesian3.fromDegrees(baseLon+.00072,baseLat+.00038,25),ellipsoid:{radii:new Cesium.Cartesian3(28,17,13),maximumCone:Cesium.Math.PI_OVER_TWO,material:Cesium.Color.LIGHTCYAN.withAlpha(.35),outline:true,outlineColor:Cesium.Color.WHITE},label:{text:'智慧温室',font:'bold 15px Microsoft YaHei',pixelOffset:new Cesium.Cartesian2(0,-35),showBackground:true,backgroundColor:Cesium.Color.DARKGREEN.withAlpha(.72)}});
+// 水箱
+viewer.entities.add({position:Cesium.Cartesian3.fromDegrees(baseLon+.00078,baseLat-.00037,10),cylinder:{length:20,topRadius:7,bottomRadius:7,material:Cesium.Color.CORNFLOWERBLUE,outline:true,outlineColor:Cesium.Color.WHITE},label:{text:'灌溉水箱',font:'14px Microsoft YaHei',pixelOffset:new Cesium.Cartesian2(0,-28),showBackground:true,backgroundColor:Cesium.Color.DARKBLUE.withAlpha(.6)}});
+// 气象站 + 传感器
+sensor(baseLon-.00092,baseLat+.00055,'气象站');sensor(baseLon-.00010,baseLat+.00058,'土壤传感器');sensor(baseLon+.00048,baseLat-.00060,'环境传感器');
+viewer.entities.add({position:Cesium.Cartesian3.fromDegrees(baseLon-.00092,baseLat+.00055,19),ellipsoid:{radii:new Cesium.Cartesian3(2.7,2.7,2.7),material:Cesium.Color.WHITE}});
+function resetView(){viewer.camera.setView({destination:Cesium.Cartesian3.fromDegrees(baseLon-.0019,baseLat-.0018,430),orientation:{heading:Cesium.Math.toRadians(28),pitch:Cesium.Math.toRadians(-38),roll:0}})}
+resetView();
+let t=23.6,m=42,l=680,w=2.1;setInterval(()=>{t+=(Math.random()-.5)*.2;m+=(Math.random()-.5)*.5;l+=(Math.random()-.5)*8;w=Math.max(0,w+(Math.random()-.5)*.15);document.getElementById('status').innerHTML=`<b>模拟 IoT 状态</b><br>🌡️ 空气温度：${t.toFixed(1)} °C<br>💧 土壤湿度：${m.toFixed(0)} %<br>☀️ 光照：${l.toFixed(0)} lx<br>🌬️ 风速：${w.toFixed(1)} m/s<br>🚿 自动灌溉：${m<35?'运行':'待机'}`},2500);
+</script>
+</body></html>
