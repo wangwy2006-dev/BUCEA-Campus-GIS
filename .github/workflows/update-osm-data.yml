@@ -18,11 +18,15 @@ jobs:
       - name: Fetch campus OSM data
         run: |
           python - <<'PY'
-          import json, urllib.parse, urllib.request, urllib.error, xml.etree.ElementTree as ET
+          import json, urllib.parse, urllib.request, xml.etree.ElementTree as ET
           from pathlib import Path
 
           WAY_ID = 546474045
-          UA = {'User-Agent': 'BUCEA-Campus-GIS educational snapshot/1.0'}
+          UA = {'User-Agent': 'BUCEA-Campus-GIS educational snapshot/1.1'}
+          ENDPOINTS = (
+              'https://overpass.kumi.systems/api/interpreter',
+              'https://overpass-api.de/api/interpreter',
+          )
           out = Path('data')
           out.mkdir(exist_ok=True)
 
@@ -33,78 +37,77 @@ jobs:
               with urllib.request.urlopen(req, timeout=timeout) as r:
                   return r.read()
 
-          # 1) Exact campus boundary from OSM way + referenced nodes.
+          def overpass(query, label):
+              payload = urllib.parse.urlencode({'data': query}).encode()
+              last = None
+              for endpoint in ENDPOINTS:
+                  try:
+                      raw = json.loads(get(endpoint, payload,
+                          {'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'}, timeout=50))
+                      print(f'{label}: ok via {endpoint}; elements={len(raw.get("elements", []))}')
+                      return raw
+                  except Exception as exc:
+                      last = exc
+                      print(f'{label}: unavailable via {endpoint}: {exc!r}')
+              print(f'{label}: skipped after all endpoints failed: {last!r}')
+              return None
+
+          def elements_to_features(raw, kind):
+              if raw is None: return None
+              nodes = {x['id']:[x['lon'],x['lat']] for x in raw.get('elements',[]) if x.get('type')=='node'}
+              features = []
+              for x in raw.get('elements',[]):
+                  if x.get('type') != 'way' or not x.get('tags'): continue
+                  coords = [nodes[i] for i in x.get('nodes',[]) if i in nodes]
+                  if len(coords) < 2: continue
+                  props = {'osm_id':x['id'], **x['tags']}
+                  closed = len(coords) >= 4 and coords[0] == coords[-1]
+                  if kind in ('building','area'):
+                      if not closed: continue
+                      geom = {'type':'Polygon','coordinates':[coords]}
+                  else:
+                      geom = {'type':'LineString','coordinates':coords}
+                  features.append({'type':'Feature','properties':props,'geometry':geom})
+              return features
+
+          def write_fc(filename, name, features):
+              if features is None: return
+              fc = {'type':'FeatureCollection','name':name,'source':'OpenStreetMap via Overpass',
+                    'license':'ODbL 1.0','campus_osm_way_id':WAY_ID,'features':features}
+              (out/filename).write_text(json.dumps(fc, ensure_ascii=False, separators=(',',':')), encoding='utf-8')
+              print(f'{filename}: features={len(features)}')
+
           xml = get(f'https://api.openstreetmap.org/api/0.6/way/{WAY_ID}/full')
           root = ET.fromstring(xml)
-          nodes = {int(n.attrib['id']): [float(n.attrib['lon']), float(n.attrib['lat'])]
-                   for n in root.findall('node')}
+          nodes = {int(n.attrib['id']): [float(n.attrib['lon']), float(n.attrib['lat'])] for n in root.findall('node')}
           way = next(w for w in root.findall('way') if int(w.attrib['id']) == WAY_ID)
           ring = [nodes[int(nd.attrib['ref'])] for nd in way.findall('nd')]
           if ring and ring[0] != ring[-1]: ring.append(ring[0])
           tags = {t.attrib['k']: t.attrib['v'] for t in way.findall('tag')}
-          boundary = {
-              'type':'FeatureCollection',
-              'name':'BUCEA_Daxing_Campus_Boundary_OSM',
-              'source':'OpenStreetMap',
-              'license':'ODbL 1.0',
-              'osm_way_id':WAY_ID,
-              'features':[{'type':'Feature','properties':{'osm_id':WAY_ID, **tags},
-                           'geometry':{'type':'Polygon','coordinates':[ring]}}]
-          }
-          (out/'osm-campus-boundary.geojson').write_text(
-              json.dumps(boundary, ensure_ascii=False, separators=(',',':')), encoding='utf-8')
+          boundary = {'type':'FeatureCollection','name':'BUCEA_Daxing_Campus_Boundary_OSM','source':'OpenStreetMap',
+                      'license':'ODbL 1.0','osm_way_id':WAY_ID,
+                      'features':[{'type':'Feature','properties':{'osm_id':WAY_ID, **tags},
+                                   'geometry':{'type':'Polygon','coordinates':[ring]}}]}
+          (out/'osm-campus-boundary.geojson').write_text(json.dumps(boundary, ensure_ascii=False, separators=(',',':')), encoding='utf-8')
           print('boundary=1')
 
-          # 2) Base layers from Overpass. A timeout must not discard the valid boundary snapshot.
           lons=[p[0] for p in ring]; lats=[p[1] for p in ring]
           w,s,e,n=min(lons),min(lats),max(lons),max(lats)
-          pad=0.0004
-          q=f'''[out:json][timeout:35];(
-            way["building"]({s-pad},{w-pad},{n+pad},{e+pad});
-            way["highway"]({s-pad},{w-pad},{n+pad},{e+pad});
-            way["leisure"="pitch"]({s-pad},{w-pad},{n+pad},{e+pad});
-            way["leisure"="track"]({s-pad},{w-pad},{n+pad},{e+pad});
-            way["landuse"]({s-pad},{w-pad},{n+pad},{e+pad});
-            way["leisure"="garden"]({s-pad},{w-pad},{n+pad},{e+pad});
-            way["leisure"="park"]({s-pad},{w-pad},{n+pad},{e+pad});
-          );out body;>;out skel qt;'''
-          payload=urllib.parse.urlencode({'data':q}).encode()
+          pad=.0004; bbox=f'{s-pad},{w-pad},{n+pad},{e+pad}'
 
-          raw = None
-          for endpoint in ('https://overpass.kumi.systems/api/interpreter',
-                           'https://overpass-api.de/api/interpreter'):
-              try:
-                  raw=json.loads(get(endpoint, payload,
-                      {'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'}, timeout=50))
-                  print('overpass=' + endpoint)
-                  break
-              except Exception as exc:
-                  print('Overpass unavailable:', endpoint, repr(exc))
+          building_raw = overpass(f'[out:json][timeout:30];way["building"]({bbox});out body;>;out skel qt;', 'buildings')
+          road_raw = overpass(f'[out:json][timeout:30];way["highway"]({bbox});out body;>;out skel qt;', 'roads')
+          area_raw = overpass(f'''[out:json][timeout:30];(
+              way["landuse"]({bbox});
+              way["leisure"="pitch"]({bbox});
+              way["leisure"="track"]({bbox});
+              way["leisure"="garden"]({bbox});
+              way["leisure"="park"]({bbox});
+            );out body;>;out skel qt;''', 'areas')
 
-          if raw is not None:
-              onodes={x['id']:[x['lon'],x['lat']] for x in raw.get('elements',[]) if x.get('type')=='node'}
-              buildings=[]; lines=[]; areas=[]
-              for x in raw.get('elements',[]):
-                  if x.get('type')!='way' or not x.get('tags'): continue
-                  coords=[onodes[i] for i in x.get('nodes',[]) if i in onodes]
-                  if len(coords)<2: continue
-                  props={'osm_id':x['id'], **x['tags']}
-                  closed=len(coords)>=4 and coords[0]==coords[-1]
-                  if 'building' in x['tags'] and closed:
-                      buildings.append({'type':'Feature','properties':props,'geometry':{'type':'Polygon','coordinates':[coords]}})
-                  elif 'highway' in x['tags']:
-                      lines.append({'type':'Feature','properties':props,'geometry':{'type':'LineString','coordinates':coords}})
-                  elif closed and any(k in x['tags'] for k in ('landuse','leisure')):
-                      areas.append({'type':'Feature','properties':props,'geometry':{'type':'Polygon','coordinates':[coords]}})
-
-              meta={'source':'OpenStreetMap via Overpass','license':'ODbL 1.0','campus_osm_way_id':WAY_ID}
-              for filename, name, feats in [
-                  ('osm-buildings.geojson','BUCEA_OSM_Buildings',buildings),
-                  ('osm-roads.geojson','BUCEA_OSM_Roads',lines),
-                  ('osm-areas.geojson','BUCEA_OSM_Areas',areas)]:
-                  fc={'type':'FeatureCollection','name':name,**meta,'features':feats}
-                  (out/filename).write_text(json.dumps(fc, ensure_ascii=False, separators=(',',':')), encoding='utf-8')
-              print(f'buildings={len(buildings)} roads={len(lines)} areas={len(areas)}')
+          write_fc('osm-buildings.geojson','BUCEA_OSM_Buildings',elements_to_features(building_raw,'building'))
+          write_fc('osm-roads.geojson','BUCEA_OSM_Roads',elements_to_features(road_raw,'road'))
+          write_fc('osm-areas.geojson','BUCEA_OSM_Areas',elements_to_features(area_raw,'area'))
           PY
       - name: Commit snapshot
         run: |
