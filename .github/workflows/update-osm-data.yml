@@ -22,7 +22,7 @@ jobs:
           from pathlib import Path
 
           WAY_ID = 546474045
-          UA = {'User-Agent': 'BUCEA-Campus-GIS educational snapshot/1.1'}
+          UA = {'User-Agent': 'BUCEA-Campus-GIS educational snapshot/1.2'}
           ENDPOINTS = (
               'https://overpass.kumi.systems/api/interpreter',
               'https://overpass-api.de/api/interpreter',
@@ -49,7 +49,7 @@ jobs:
                   except Exception as exc:
                       last = exc
                       print(f'{label}: unavailable via {endpoint}: {exc!r}')
-              print(f'{label}: skipped after all endpoints failed: {last!r}')
+              print(f'{label}: Overpass unavailable: {last!r}')
               return None
 
           def elements_to_features(raw, kind):
@@ -70,13 +70,62 @@ jobs:
                   features.append({'type':'Feature','properties':props,'geometry':geom})
               return features
 
-          def write_fc(filename, name, features):
+          def point_in_ring(point, ring):
+              x, y = point
+              inside = False
+              j = len(ring) - 1
+              for i in range(len(ring)):
+                  xi, yi = ring[i]; xj, yj = ring[j]
+                  if ((yi > y) != (yj > y)) and (x < (xj-xi)*(y-yi)/(yj-yi) + xi):
+                      inside = not inside
+                  j = i
+              return inside
+
+          def centroid(coords):
+              pts = coords[:-1] if len(coords) > 1 and coords[0] == coords[-1] else coords
+              return [sum(p[0] for p in pts)/len(pts), sum(p[1] for p in pts)/len(pts)]
+
+          def map_api_features(xml_bytes, campus_ring):
+              root = ET.fromstring(xml_bytes)
+              nodes = {int(n.attrib['id']): [float(n.attrib['lon']), float(n.attrib['lat'])] for n in root.findall('node')}
+              buildings, roads, areas = [], [], []
+              for w in root.findall('way'):
+                  tags = {t.attrib['k']: t.attrib['v'] for t in w.findall('tag')}
+                  if not tags: continue
+                  coords = [nodes[int(nd.attrib['ref'])] for nd in w.findall('nd') if int(nd.attrib['ref']) in nodes]
+                  if len(coords) < 2: continue
+                  props = {'osm_id':int(w.attrib['id']), **tags}
+                  closed = len(coords) >= 4 and coords[0] == coords[-1]
+                  if tags.get('building') and closed and point_in_ring(centroid(coords), campus_ring):
+                      buildings.append({'type':'Feature','properties':props,'geometry':{'type':'Polygon','coordinates':[coords]}})
+                  if tags.get('highway') and any(point_in_ring(p, campus_ring) for p in coords):
+                      roads.append({'type':'Feature','properties':props,'geometry':{'type':'LineString','coordinates':coords}})
+                  leisure = tags.get('leisure')
+                  if closed and (tags.get('landuse') or leisure in {'pitch','track','garden','park'}) and point_in_ring(centroid(coords), campus_ring):
+                      areas.append({'type':'Feature','properties':props,'geometry':{'type':'Polygon','coordinates':[coords]}})
+              print(f'OSM Map API fallback: buildings={len(buildings)}, roads={len(roads)}, areas={len(areas)}')
+              return buildings, roads, areas
+
+          def filter_features(features, campus_ring, kind):
+              if features is None: return None
+              kept = []
+              for f in features:
+                  geom = f['geometry']; coords = geom['coordinates']
+                  if kind == 'road':
+                      if any(point_in_ring(p, campus_ring) for p in coords): kept.append(f)
+                  else:
+                      ring = coords[0]
+                      if point_in_ring(centroid(ring), campus_ring): kept.append(f)
+              return kept
+
+          def write_fc(filename, name, features, source):
               if features is None: return
-              fc = {'type':'FeatureCollection','name':name,'source':'OpenStreetMap via Overpass',
+              fc = {'type':'FeatureCollection','name':name,'source':source,
                     'license':'ODbL 1.0','campus_osm_way_id':WAY_ID,'features':features}
               (out/filename).write_text(json.dumps(fc, ensure_ascii=False, separators=(',',':')), encoding='utf-8')
               print(f'{filename}: features={len(features)}')
 
+          # Exact campus boundary from the official OSM API.
           xml = get(f'https://api.openstreetmap.org/api/0.6/way/{WAY_ID}/full')
           root = ET.fromstring(xml)
           nodes = {int(n.attrib['id']): [float(n.attrib['lon']), float(n.attrib['lat'])] for n in root.findall('node')}
@@ -92,8 +141,8 @@ jobs:
           print('boundary=1')
 
           lons=[p[0] for p in ring]; lats=[p[1] for p in ring]
-          w,s,e,n=min(lons),min(lats),max(lons),max(lats)
-          pad=.0004; bbox=f'{s-pad},{w-pad},{n+pad},{e+pad}'
+          west,south,east,north=min(lons),min(lats),max(lons),max(lats)
+          pad=.0004; bbox=f'{south-pad},{west-pad},{north+pad},{east+pad}'
 
           building_raw = overpass(f'[out:json][timeout:30];way["building"]({bbox});out body;>;out skel qt;', 'buildings')
           road_raw = overpass(f'[out:json][timeout:30];way["highway"]({bbox});out body;>;out skel qt;', 'roads')
@@ -105,9 +154,27 @@ jobs:
               way["leisure"="park"]({bbox});
             );out body;>;out skel qt;''', 'areas')
 
-          write_fc('osm-buildings.geojson','BUCEA_OSM_Buildings',elements_to_features(building_raw,'building'))
-          write_fc('osm-roads.geojson','BUCEA_OSM_Roads',elements_to_features(road_raw,'road'))
-          write_fc('osm-areas.geojson','BUCEA_OSM_Areas',elements_to_features(area_raw,'area'))
+          buildings = filter_features(elements_to_features(building_raw,'building'), ring, 'building')
+          roads = filter_features(elements_to_features(road_raw,'road'), ring, 'road')
+          areas = filter_features(elements_to_features(area_raw,'area'), ring, 'area')
+          sources = {'building':'OpenStreetMap via Overpass','road':'OpenStreetMap via Overpass','area':'OpenStreetMap via Overpass'}
+
+          # Overpass is convenient but can return 502/504. The official OSM Map API
+          # is a bounded, independent fallback for this small campus extent.
+          if buildings is None or roads is None or areas is None:
+              map_bbox = f'{west-pad},{south-pad},{east+pad},{north+pad}'
+              map_xml = get('https://api.openstreetmap.org/api/0.6/map?bbox=' + map_bbox, timeout=90)
+              fb_buildings, fb_roads, fb_areas = map_api_features(map_xml, ring)
+              if buildings is None:
+                  buildings = fb_buildings; sources['building']='OpenStreetMap Map API fallback'
+              if roads is None:
+                  roads = fb_roads; sources['road']='OpenStreetMap Map API fallback'
+              if areas is None:
+                  areas = fb_areas; sources['area']='OpenStreetMap Map API fallback'
+
+          write_fc('osm-buildings.geojson','BUCEA_OSM_Buildings',buildings,sources['building'])
+          write_fc('osm-roads.geojson','BUCEA_OSM_Roads',roads,sources['road'])
+          write_fc('osm-areas.geojson','BUCEA_OSM_Areas',areas,sources['area'])
           PY
       - name: Commit snapshot
         run: |
