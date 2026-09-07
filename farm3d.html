@@ -4,60 +4,53 @@
 <script src="https://cesium.com/downloads/cesiumjs/releases/1.144/Build/Cesium/Cesium.js"></script>
 <link rel="stylesheet" href="https://cesium.com/downloads/cesiumjs/releases/1.144/Build/Cesium/Widgets/widgets.css">
 <style>
-html,body,#farm{width:100%;height:100%;margin:0;overflow:hidden;font-family:Arial,"Microsoft YaHei",sans-serif;background:linear-gradient(#acd9f5,#edf7ef)}
-.card{position:absolute;z-index:10;border:1px solid #ffffff33;background:#12342ee8;color:#fff;box-shadow:0 12px 36px #0003;backdrop-filter:blur(7px)}
-.panel{top:16px;left:16px;max-width:390px;padding:15px 17px;border-radius:18px}.panel h1{font-size:22px;margin:0 0 7px}.panel p{font-size:13px;line-height:1.6;margin:4px 0;color:#dff5e9}.panel button,.tour button{margin:7px 5px 0 0;padding:8px 11px;border:0;border-radius:9px;background:#fff;color:#17352e;cursor:pointer}.status{right:16px;top:16px;width:230px;padding:13px 15px;border-radius:15px;font-size:13px;line-height:1.8}.tour{right:16px;bottom:16px;padding:11px 13px;border-radius:14px;font-size:12px}.legend{left:16px;bottom:16px;padding:10px 13px;border-radius:12px;font-size:12px}.badge{display:inline-block;padding:3px 8px;border-radius:99px;background:#ffffff1d;margin-bottom:6px;font-size:11px}
-@media(max-width:760px){.status{top:auto;bottom:14px;width:205px}.legend,.tour{display:none}.panel{max-width:300px}}
+html,body,#farm{width:100%;height:100%;margin:0;overflow:hidden;font-family:Arial,"Microsoft YaHei",sans-serif;background:#b8dff4}.card{position:absolute;z-index:10;border:1px solid #ffffff38;background:#12342ee8;color:#fff;box-shadow:0 12px 36px #0003;backdrop-filter:blur(8px)}.panel{top:16px;left:16px;max-width:390px;padding:15px 17px;border-radius:18px}.panel h1{font-size:22px;margin:0 0 7px}.panel p{font-size:13px;line-height:1.6;margin:4px 0;color:#dff5e9}.panel button,.tour button{margin:7px 5px 0 0;padding:8px 11px;border:0;border-radius:9px;background:#fff;color:#17352e;cursor:pointer}.status{right:16px;top:16px;width:230px;padding:13px 15px;border-radius:15px;font-size:13px;line-height:1.8}.tour{right:16px;bottom:16px;padding:11px 13px;border-radius:14px;font-size:12px}.legend{left:16px;bottom:16px;padding:10px 13px;border-radius:12px;font-size:12px}.badge{display:inline-block;padding:3px 8px;border-radius:99px;background:#ffffff1d;margin-bottom:6px;font-size:11px}@media(max-width:760px){.status{top:auto;bottom:14px;width:205px}.legend,.tour{display:none}.panel{max-width:300px}}
 </style></head><body>
 <div id="farm"></div>
-<div class="card panel"><span class="badge">LOW-POLY VIRTUAL FARM</span><h1>🌻 开心农场 · 三维小世界</h1><p>以田园景观为主体，而不是把农场做成 GIS 图层。场景由农田、林带、温室、水塘、农舍、道路、风车和智慧设施共同构成，可自由旋转、缩放和漫游。</p><button onclick="location.href='index.html'">⌂ 首页</button><button onclick="location.href='gis.html'">校园 GIS</button><button onclick="goView('overview')">全景</button></div>
+<div class="card panel"><span class="badge">SCENIC LOW-POLY FARM</span><h1>🌻 开心农场 · 三维小世界</h1><p>以田园景观为主体：入口、农田、温室、果园、水塘、木桥、农舍、风车和智慧设施共同组成一个完整可漫游场景。</p><button onclick="location.href='index.html'">⌂ 首页</button><button onclick="location.href='gis.html'">校园 GIS</button><button onclick="goView('overview')">全景</button></div>
 <div class="card status" id="status"><b>智慧农场 · 场景状态</b><br>🌡️ 23.6 °C　💧 42 %<br>☀️ 680 lx　🌬️ 2.1 m/s<br>🚿 自动灌溉：待机</div>
-<div class="card legend">🌾 梯田与菜园　🏡 温室农舍　💧 水塘溪渠　🌳 果园林带　⚙ 风能光伏</div>
+<div class="card legend">🌾 成片作物　🏡 温室农舍　💧 水塘木桥　🌳 果园林带　⚙ 风能光伏</div>
 <div class="card tour">漫游视角<br><button onclick="goView('fields')">田野</button><button onclick="goView('greenhouse')">温室</button><button onclick="goView('pond')">水塘</button><button onclick="goView('orchard')">果园</button><button onclick="goView('house')">农舍</button></div>
 <script>
 try{
 const viewer=new Cesium.Viewer('farm',{baseLayer:false,terrainProvider:new Cesium.EllipsoidTerrainProvider(),animation:false,timeline:false,geocoder:false,homeButton:false,sceneModePicker:false,baseLayerPicker:false,navigationHelpButton:false,fullscreenButton:false,infoBox:false,selectionIndicator:false});
-const S=viewer.scene;S.backgroundColor=Cesium.Color.fromCssColorString('#b8dff4');S.globe.show=true;S.globe.baseColor=Cesium.Color.fromCssColorString('#789e61');S.globe.depthTestAgainstTerrain=false;S.screenSpaceCameraController.enableCollisionDetection=false;S.screenSpaceCameraController.minimumZoomDistance=28;S.fog.enabled=true;S.fog.density=.00035;S.skyAtmosphere.show=true;S.globe.enableLighting=true;S.shadowMap.enabled=true;viewer.shadows=true;
+const S=viewer.scene;S.backgroundColor=Cesium.Color.fromCssColorString('#b8dff4');S.globe.show=true;S.globe.baseColor=Cesium.Color.fromCssColorString('#789e61');S.globe.depthTestAgainstTerrain=false;S.screenSpaceCameraController.enableCollisionDetection=false;S.screenSpaceCameraController.minimumZoomDistance=24;S.fog.enabled=true;S.fog.density=.00028;S.skyAtmosphere.show=true;S.globe.enableLighting=true;S.shadowMap.enabled=true;viewer.shadows=true;
 const L=116.282,A=39.7448,C=Cesium.Color.fromCssColorString;
 function p(x,y,z=0){return Cesium.Cartesian3.fromDegrees(L+x/85000,A+y/111000,z)}
-function box(x,y,w,h,z,c,a=1,o=false){viewer.entities.add({position:p(x,y,z/2+.2),box:{dimensions:new Cesium.Cartesian3(w,h,z),material:C(c).withAlpha(a),outline:o,outlineColor:Cesium.Color.WHITE.withAlpha(.55)},shadows:Cesium.ShadowMode.ENABLED})}
+function box(x,y,w,h,z,c,a=1,o=false){viewer.entities.add({position:p(x,y,z/2+.2),box:{dimensions:new Cesium.Cartesian3(w,h,z),material:C(c).withAlpha(a),outline:o,outlineColor:Cesium.Color.WHITE.withAlpha(.5)},shadows:Cesium.ShadowMode.ENABLED})}
 function cyl(x,y,z,r,c,top=.75){viewer.entities.add({position:p(x,y,z/2+.3),cylinder:{length:z,topRadius:r*top,bottomRadius:r,material:C(c)},shadows:Cesium.ShadowMode.ENABLED})}
 function ball(x,y,z,rx,ry,rz,c,a=1){viewer.entities.add({position:p(x,y,z),ellipsoid:{radii:new Cesium.Cartesian3(rx,ry,rz),material:C(c).withAlpha(a)},shadows:Cesium.ShadowMode.ENABLED})}
-function lab(x,y,z,t){viewer.entities.add({position:p(x,y,z),label:{text:t,font:'bold 14px Microsoft YaHei',fillColor:Cesium.Color.WHITE,showBackground:true,backgroundColor:C('#17352e').withAlpha(.8),pixelOffset:new Cesium.Cartesian2(0,-16),distanceDisplayCondition:new Cesium.DistanceDisplayCondition(0,760),disableDepthTestDistance:900}})}
+function lab(x,y,z,t){viewer.entities.add({position:p(x,y,z),label:{text:t,font:'bold 14px Microsoft YaHei',fillColor:Cesium.Color.WHITE,showBackground:true,backgroundColor:C('#17352e').withAlpha(.82),pixelOffset:new Cesium.Cartesian2(0,-16),distanceDisplayCondition:new Cesium.DistanceDisplayCondition(0,760),disableDepthTestDistance:900}})}
 function tree(x,y,s=1,c='#4f8c48'){cyl(x,y,5*s,.72*s,'#725339');ball(x,y,8*s,3.7*s,3.7*s,4.8*s,c)}
-function shrub(x,y,s=.8){ball(x,y,1.8*s,2.5*s,2.2*s,1.7*s,['#5d9b51','#6aa85a','#4f8a49'][Math.abs(Math.round(x+y))%3])}
-function fence(x1,y1,x2,y2,n){for(let i=0;i<=n;i++){const t=i/n;cyl(x1+(x2-x1)*t,y1+(y2-y1)*t,3.2,.38,'#76523a')} }
+function shrub(x,y,s=.8,c='#5d9b51'){ball(x,y,1.8*s,2.5*s,2.2*s,1.7*s,c)}
+function fence(x1,y1,x2,y2,n){for(let i=0;i<=n;i++){const t=i/n;cyl(x1+(x2-x1)*t,y1+(y2-y1)*t,3.2,.38,'#76523a')}}
 function crop(x,y,type){if(type===0){cyl(x,y,4.8,.6,'#56843f');ball(x,y,6,1.5,1.5,.65,'#f1c743')}else if(type===1){cyl(x,y,2.2,.65,'#5f944b');ball(x,y,2.8,1.5,1.5,1,'#72b45b')}else if(type===2){cyl(x,y,6.1,.55,'#79a848');ball(x,y,6.4,1.2,1.2,2.2,'#9fc74f')}else{cyl(x,y,2.2,.55,'#5f944b');ball(x,y,2.9,1.35,1.35,1,'#d85d46')}}
-// layered island-like ground and soft hills
-box(0,0,310,230,3,'#577846');box(0,0,292,214,2,'#91be68');
-[[-126,76,38,30,8],[-118,-72,40,27,6],[118,76,36,28,7],[120,-73,34,26,6]].forEach(h=>ball(h[0],h[1],3,h[2],h[3],h[4],'#78aa5c'));
-// circulation: entrance boulevard, ring path, field lanes
-box(0,-96,48,18,1.1,'#d8bd87');box(0,-52,12,82,1,'#dcc48e');box(0,15,12,56,1,'#dcc48e');box(0,54,244,9,1,'#d6b980');box(-66,-5,8,177,1,'#d6b980');box(67,-5,8,177,1,'#d6b980');box(96,10,7,91,1,'#d6b980');
-// entrance gate + flower beds
-box(-15,-91,5,5,15,'#eadcbc');box(15,-91,5,5,15,'#eadcbc');box(0,-91,25,3,3,'#704d36');lab(0,-91,20,'开心农场');for(let x=-32;x<=32;x+=8){shrub(x,-83,.65);ball(x,-83,3.1,.55,.55,.55,x%16?'#f3cc5c':'#df7b72')}
-// productive fields: soil beds, raised rows and dense crops
-const beds=[[-98,31,'向日葵田',0],[-34,31,'生态菜园',1],[-98,-35,'玉米田',2],[-34,-35,'番茄田',3]];
-beds.forEach(b=>{box(b[0],b[1],47,50,2,'#70492d');for(let r=-3;r<=3;r++){box(b[0],b[1]+r*6,43,2.4,.6,'#91643b');for(let c=-4;c<=4;c++)crop(b[0]+c*4.6,b[1]+r*6,b[3])}lab(b[0],b[1],10,b[2])});
-// greenhouse village, transparent volumes + planted interior strips
-box(31,31,52,50,1,'#b88b5d');[-15,0,15].forEach(dx=>{viewer.entities.add({position:p(31+dx,31,9),box:{dimensions:new Cesium.Cartesian3(12,40,16),material:C('#dff7f1').withAlpha(.25),outline:true,outlineColor:Cesium.Color.WHITE.withAlpha(.9)}});ball(31+dx,31,17,6,20,5.3,'#e9fbf7',.2);for(let yy=16;yy<=46;yy+=7)for(let xx=-3;xx<=3;xx+=3)shrub(31+dx+xx,yy,.45)});lab(31,31,27,'智慧温室群');
-// pond district: water, island, reeds, timber bridge and winding irrigation canal
-viewer.entities.add({position:p(101,-35,.9),ellipse:{semiMajorAxis:31,semiMinorAxis:23,material:C('#55b8d5').withAlpha(.96),outline:true,outlineColor:C('#d9f7ff')}});ball(111,-30,1.3,8,6,1.7,'#8fc86a');tree(111,-30,.6,'#5c9b50');box(87,-35,4,53,1,'#ba8f5c');for(let i=0;i<7;i++){const ang=i*.9;cyl(78+Math.cos(ang)*24,-35+Math.sin(ang)*18,3,.25,'#7c9c55')}
-box(70,-66,51,4,1,'#55a9cf');box(49,-52,4,32,1,'#55a9cf');box(76,-70,15,12,9,'#dfc694');lab(101,-35,9,'生态水塘');lab(76,-70,15,'水泵房');
-// orchard and picnic clearing
-for(let r=0;r<4;r++)for(let c=0;c<5;c++){const x=18+c*10,y=-18-r*11.5;tree(x,y,.95,(r+c)%3===0?'#5e994f':(r+c)%3===1?'#4f8b47':'#6aa252');if((r+c)%4===0)ball(x+1,y+1,9,1,1,1,'#db8d3f')}lab(38,-37,15,'果树林');box(23,-68,26,10,.7,'#c8aa78');box(18,-68,2,7,2.4,'#79583e');box(28,-68,2,7,2.4,'#79583e');
-// farmhouse cluster with roof massing, porch and small courtyard
-box(102,34,31,23,13,'#e3bf7b',1,true);viewer.entities.add({position:p(102,34,17),ellipsoid:{radii:new Cesium.Cartesian3(17,13,5.5),material:C('#a65f45')}});box(103,58,24,15,9,'#dab176',1,true);box(101,47,34,4,1,'#c69961');box(87,33,3,11,9,'#8b5e3c');lab(102,34,25,'田园农舍');
-// solar terrace and water tower
-for(let i=0;i<4;i++)viewer.entities.add({position:p(76+i*10,64,5),box:{dimensions:new Cesium.Cartesian3(8,5,.8),material:C('#355d7a'),outline:true,outlineColor:C('#9bc9e5')}});lab(91,64,11,'光伏能源区');cyl(75,36,18,5.7,'#5b99bd');for(const dx of [-4,4])for(const dy of [-4,4])cyl(75+dx,36+dy,7,.42,'#655d54');lab(75,36,27,'灌溉水塔');
-// wind turbine as a distant landmark
-cyl(-120,60,27,1.05,'#eef1f2');ball(-120,60,30,2,2,2,'#fff');box(-120,60,2,28,.5,'#f7f7f7');box(-120,60,28,2,.5,'#f7f7f7');lab(-120,60,37,'风能气象站');
-// forest belt + boundary fence
-for(let x=-122;x<=122;x+=16){tree(x,84,.82,x%32?'#4c8c48':'#5d9a52');tree(x,-80,.75,'#568f4d')}for(let y=-65;y<=70;y+=15){tree(-133,y,.78,'#4f8d49');if(y>0)tree(132,y,.72,'#609d54')}fence(-138,-87,138,-87,24);fence(-138,89,138,89,24);fence(-140,-78,-140,80,15);fence(140,-78,140,80,15);
-// small landscape details make the farm read as a place rather than a diagram
-for(let i=0;i<18;i++){const x=-55+(i%6)*20,y=73+Math.floor(i/6)*4;shrub(x,y,.55)}
-[[-7,58,'土壤传感器'],[7,-56,'环境传感器'],[58,65,'光照传感器']].forEach(s=>{cyl(s[0],s[1],7.5,.5,'#455a64');ball(s[0],s[1],8.3,1.2,1.2,1.2,'#78c7d4');lab(s[0],s[1],12,s[2])});
-const V={overview:[-245,-250,295,36,-28],fields:[-165,-125,155,29,-23],greenhouse:[-58,-25,118,39,-22],pond:[28,-145,124,12,-21],orchard:[-18,-116,112,18,-21],house:[33,-25,108,18,-20]};
-function goView(n){const v=V[n]||V.overview;viewer.camera.flyTo({destination:p(v[0],v[1],v[2]),orientation:{heading:Cesium.Math.toRadians(v[3]),pitch:Cesium.Math.toRadians(v[4]),roll:0},duration:.9})}window.goView=goView;goView('overview');
+// layered terrain base and corner hills
+box(0,0,320,238,3,'#587747');box(0,0,302,220,2,'#91be68');[[-132,80,40,31,8],[-124,-74,42,30,7],[124,80,39,30,8],[125,-74,37,28,7]].forEach(h=>ball(h[0],h[1],3,h[2],h[3],h[4],'#78aa5c'));
+// main road network and plaza
+box(0,-98,54,18,1.1,'#d8bd87');box(0,-52,12,82,1,'#dcc48e');box(0,15,12,58,1,'#dcc48e');box(0,56,250,9,1,'#d6b980');box(-67,-5,8,178,1,'#d6b980');box(68,-5,8,178,1,'#d6b980');box(98,8,7,95,1,'#d6b980');box(0,-76,65,16,.8,'#c9a978');
+// gate, sign, flower beds and benches
+box(-17,-94,5,5,16,'#eadcbc');box(17,-94,5,5,16,'#eadcbc');box(0,-94,29,3,3,'#704d36');lab(0,-94,21,'开心农场');for(let x=-36;x<=36;x+=8){shrub(x,-84,.62,x%16?'#6ca45c':'#5b964f');ball(x,-84,3.1,.55,.55,.55,x%16?'#f3cc5c':'#df7b72')}for(const x of [-24,24]){box(x,-73,12,3,.8,'#9e784f');box(x-4,-73,1,3,2.2,'#70523a');box(x+4,-73,1,3,2.2,'#70523a')}
+// productive fields with raised rows and dense crops
+const beds=[[-101,32,'向日葵田',0],[-36,32,'生态菜园',1],[-101,-35,'玉米田',2],[-36,-35,'番茄田',3]];beds.forEach(b=>{box(b[0],b[1],48,51,2,'#70492d');for(let r=-3;r<=3;r++){box(b[0],b[1]+r*6,44,2.4,.6,'#91643b');for(let c=-4;c<=4;c++)crop(b[0]+c*4.7,b[1]+r*6,b[3])}lab(b[0],b[1],10,b[2])});
+// greenhouse cluster, nursery beds and service shed
+box(31,32,53,51,1,'#b88b5d');[-15,0,15].forEach(dx=>{viewer.entities.add({position:p(31+dx,32,9),box:{dimensions:new Cesium.Cartesian3(12,40,16),material:C('#dff7f1').withAlpha(.25),outline:true,outlineColor:Cesium.Color.WHITE.withAlpha(.92)}});ball(31+dx,32,17,6,20,5.3,'#e9fbf7',.19);for(let yy=18;yy<=46;yy+=7)for(let xx=-3;xx<=3;xx+=3)shrub(31+dx+xx,yy,.45,'#6ca95b')});box(46,6,17,10,7,'#d5ae71',1,true);lab(31,32,27,'智慧温室群');
+// pond, island, reeds, bridge and irrigation canal
+viewer.entities.add({position:p(103,-35,.9),ellipse:{semiMajorAxis:32,semiMinorAxis:24,material:C('#55b8d5').withAlpha(.96),outline:true,outlineColor:C('#d9f7ff')}});ball(113,-30,1.3,8,6,1.7,'#8fc86a');tree(113,-30,.65,'#5c9b50');for(let i=0;i<10;i++){const ang=i*.68;cyl(80+Math.cos(ang)*25,-35+Math.sin(ang)*19,3,.24,'#789c55')}
+box(89,-35,5,54,1.1,'#ba8f5c');for(let y=-58;y<=-13;y+=7)box(89,y,9,1.2,.7,'#8a6747');box(70,-67,54,4,1,'#55a9cf');box(49,-53,4,32,1,'#55a9cf');box(76,-71,16,12,9,'#dfc694');lab(103,-35,9,'生态水塘');lab(76,-71,15,'水泵房');
+// orchard, picnic deck and pergola
+for(let r=0;r<4;r++)for(let c=0;c<5;c++){const x=18+c*10,y=-18-r*11.5;tree(x,y,.95,(r+c)%3===0?'#5e994f':(r+c)%3===1?'#4f8b47':'#6aa252');if((r+c)%4===0)ball(x+1,y+1,9,1,1,1,'#db8d3f')}lab(38,-37,15,'果树林');box(25,-69,29,12,.7,'#c8aa78');for(const x of [14,36]){cyl(x,-69,8,.45,'#76523a');cyl(x,-61,8,.45,'#76523a')}box(25,-65,28,2,1,'#76523a');
+// farmhouse cluster with courtyard and barn-like volume
+box(104,35,32,23,13,'#e3bf7b',1,true);ball(104,35,17,17,13,5.5,'#a65f45');box(105,59,25,15,9,'#dab176',1,true);box(103,48,36,5,1,'#c69961');box(88,34,3,11,9,'#8b5e3c');box(126,58,18,13,10,'#c9875a',1,true);ball(126,58,15,9.5,7,4.5,'#8f513c');lab(104,35,25,'田园农舍');
+// energy garden, tower and machinery yard
+for(let i=0;i<4;i++)viewer.entities.add({position:p(76+i*10,66,5),box:{dimensions:new Cesium.Cartesian3(8,5,.8),material:C('#355d7a'),outline:true,outlineColor:C('#9bc9e5')}});lab(91,66,11,'光伏能源区');cyl(76,37,18,5.7,'#5b99bd');for(const dx of [-4,4])for(const dy of [-4,4])cyl(76+dx,37+dy,7,.42,'#655d54');lab(76,37,27,'灌溉水塔');box(118,73,28,14,1,'#a68f68');box(114,73,8,5,4,'#d17f44');cyl(109,69,2.8,1.6,'#333');cyl(119,69,2.8,1.6,'#333');
+// wind turbine landmark
+cyl(-122,62,28,1.05,'#eef1f2');ball(-122,62,31,2,2,2,'#fff');box(-122,62,2,30,.5,'#f7f7f7');box(-122,62,30,2,.5,'#f7f7f7');lab(-122,62,38,'风能气象站');
+// forest belt, fence and layered shrubs
+for(let x=-126;x<=126;x+=16){tree(x,87,.82,x%32?'#4c8c48':'#5d9a52');tree(x,-82,.75,'#568f4d')}for(let y=-67;y<=72;y+=15){tree(-136,y,.78,'#4f8d49');if(y>0)tree(135,y,.72,'#609d54')}fence(-142,-90,142,-90,25);fence(-142,92,142,92,25);fence(-144,-80,-144,82,16);fence(144,-80,144,82,16);for(let i=0;i<24;i++){const x=-58+(i%8)*17,y=75+Math.floor(i/8)*5;shrub(x,y,.55,i%2?'#6aa85a':'#5d9b51')}
+// sensors kept secondary to scenery
+[[-7,60,'土壤传感器'],[7,-58,'环境传感器'],[58,67,'光照传感器']].forEach(s=>{cyl(s[0],s[1],7.5,.5,'#455a64');ball(s[0],s[1],8.3,1.2,1.2,1.2,'#78c7d4');lab(s[0],s[1],12,s[2])});
+const V={overview:[-255,-265,305,36,-29],fields:[-170,-130,155,28,-24],greenhouse:[-60,-20,120,40,-23],pond:[35,-150,126,10,-22],orchard:[-18,-118,112,18,-22],house:[38,-20,108,20,-21]};function goView(n){const v=V[n]||V.overview;viewer.camera.flyTo({destination:p(v[0],v[1],v[2]),orientation:{heading:Cesium.Math.toRadians(v[3]),pitch:Cesium.Math.toRadians(v[4]),roll:0},duration:.9})}window.goView=goView;goView('overview');
 let t=23.6,m=42,l=680,w=2.1;setInterval(()=>{t+=(Math.random()-.5)*.2;m+=(Math.random()-.5)*.5;l+=(Math.random()-.5)*8;w=Math.max(0,w+(Math.random()-.5)*.15);document.getElementById('status').innerHTML=`<b>智慧农场 · 场景状态</b><br>🌡️ ${t.toFixed(1)} °C　💧 ${m.toFixed(0)} %<br>☀️ ${l.toFixed(0)} lx　🌬️ ${w.toFixed(1)} m/s<br>🚿 自动灌溉：${m<35?'运行':'待机'}`},2500)
 }catch(err){console.error(err);document.getElementById('farm').innerHTML='<div style="padding:32px;color:#17352e;font:16px sans-serif">三维场景初始化失败：'+err.message+'</div>'}
 </script></body></html>
