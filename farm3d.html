@@ -1,388 +1,91 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>开心农场 · 三维田园世界</title>
-  <style>
-    * { box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; font-family: Arial, "Microsoft YaHei", sans-serif; background: #bfe0ef; }
-    #farm { position: fixed; inset: 0; }
-    canvas { display: block; }
-    .glass { position: fixed; z-index: 10; color: #f7fff8; background: rgba(24, 55, 43, .80); border: 1px solid rgba(255,255,255,.22); box-shadow: 0 14px 40px rgba(10, 30, 22, .20); backdrop-filter: blur(9px); }
-    .hero { left: 18px; top: 18px; width: min(430px, calc(100vw - 36px)); padding: 16px 18px; border-radius: 18px; }
-    .hero h1 { margin: 0 0 8px; font-size: 23px; letter-spacing: .5px; }
-    .hero p { margin: 0; color: #ddf4e4; font-size: 13px; line-height: 1.65; }
-    .badge { display: inline-block; margin-bottom: 8px; padding: 4px 9px; border-radius: 99px; background: rgba(255,255,255,.12); font-size: 11px; letter-spacing: 1px; }
-    .buttons { margin-top: 11px; display: flex; flex-wrap: wrap; gap: 7px; }
-    button { border: 0; border-radius: 9px; padding: 8px 11px; background: #f8fff8; color: #214735; cursor: pointer; font-weight: 600; }
-    button:hover { background: #e3f5e7; }
-    .guide { right: 18px; top: 18px; width: 230px; padding: 13px 15px; border-radius: 15px; font-size: 12px; line-height: 1.75; }
-    .legend { left: 18px; bottom: 18px; padding: 10px 13px; border-radius: 13px; font-size: 12px; line-height: 1.65; }
-    .tour { right: 18px; bottom: 18px; padding: 10px 12px; border-radius: 13px; max-width: 360px; }
-    .tour strong { display: block; margin-bottom: 5px; font-size: 12px; }
-    .tour button { padding: 7px 9px; font-size: 12px; }
-    .credit { position: fixed; z-index: 10; right: 20px; bottom: 86px; color: rgba(255,255,255,.72); text-shadow: 0 1px 3px rgba(0,0,0,.35); font-size: 10px; }
-    @media (max-width: 780px) {
-      .hero { right: 14px; left: 14px; top: 14px; width: auto; }
-      .hero h1 { font-size: 19px; }
-      .guide, .legend { display: none; }
-      .tour { left: 14px; right: 14px; bottom: 14px; max-width: none; }
-      .credit { display: none; }
-    }
-  </style>
-  <script type="importmap">
-  {
-    "imports": {
-      "three": "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js",
-      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"
-    }
-  }
-  </script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>开心农场 · 三维田园世界</title>
+<style>
+*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden;font-family:Arial,"Microsoft YaHei",sans-serif;background:#bfddec}#farm{position:fixed;inset:0}canvas{display:block}.glass{position:fixed;z-index:10;color:#f7fff8;background:rgba(24,55,43,.82);border:1px solid rgba(255,255,255,.22);box-shadow:0 14px 40px rgba(10,30,22,.2);backdrop-filter:blur(9px)}.hero{left:18px;top:18px;width:min(430px,calc(100vw - 36px));padding:15px 17px;border-radius:17px}.hero h1{margin:0 0 7px;font-size:22px}.hero p{margin:0;color:#ddf4e4;font-size:12px;line-height:1.62}.badge{display:inline-block;margin-bottom:7px;padding:4px 9px;border-radius:99px;background:rgba(255,255,255,.12);font-size:10px;letter-spacing:1px}.buttons{margin-top:10px;display:flex;flex-wrap:wrap;gap:7px}button{border:0;border-radius:9px;padding:8px 11px;background:#f8fff8;color:#214735;cursor:pointer;font-weight:600}button:hover{background:#e3f5e7}.guide{right:18px;top:18px;width:220px;padding:12px 14px;border-radius:14px;font-size:11px;line-height:1.72}.tour{right:18px;bottom:18px;padding:10px 12px;border-radius:13px;max-width:390px}.tour strong{display:block;margin-bottom:5px;font-size:12px}.tour button{padding:7px 9px;font-size:11px}.legend{left:18px;bottom:18px;padding:9px 12px;border-radius:12px;font-size:11px;line-height:1.6}.credit{position:fixed;z-index:10;right:20px;bottom:78px;color:rgba(255,255,255,.8);text-shadow:0 1px 3px rgba(0,0,0,.4);font-size:10px}@media(max-width:780px){.hero{right:14px;left:14px;top:14px;width:auto}.hero h1{font-size:18px}.guide,.legend{display:none}.tour{left:14px;right:14px;bottom:14px;max-width:none}.credit{display:none}}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.180.0/examples/jsm/"}}</script>
 </head>
 <body>
-  <div id="farm"></div>
+<div id="farm"></div>
+<section class="glass hero"><span class="badge">HAPPY FARM · LANDSCAPE V2</span><h1>🌻 开心农场 · 三维田园世界</h1><p>完整农场初版：起伏地形、贴地道路、围栏与田埂、成片作物、果园、池塘湿地、温室农舍、水塔和林带共同组成可漫游的三维小世界。</p><div class="buttons"><button onclick="location.href='index.html'">⌂ 首页</button><button onclick="location.href='gis.html?mode=3d'">校园三维</button><button data-view="overview">全景</button></div></section>
+<aside class="glass guide"><b>场景组成</b><br>⛰ 地形 / 草坡 / 林带<br>🛣 主路 / 田间路 / 小桥<br>🌾 麦田 / 菜地 / 花田 / 果园<br>🏡 温室 / 农舍 / 谷仓 / 水塔<br>💧 池塘 / 芦苇 / 湿地岸线<br>🖱 拖动旋转 · 滚轮缩放</aside>
+<div class="glass legend">🌾 农田　🍎 果园　💧 水塘　🌲 林带　🏡 农舍　🟢 温室</div>
+<div class="glass tour"><strong>场景视角</strong><button data-view="overview">斜鸟瞰</button><button data-view="fields">农田</button><button data-view="pond">水塘</button><button data-view="orchard">果园</button><button data-view="greenhouse">温室农舍</button></div>
+<div class="credit">Three.js · 纯前端 · GitHub Pages</div>
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
 
-  <section class="glass hero">
-    <span class="badge">TERRAIN-FIRST · HAPPY FARM</span>
-    <h1>🌻 开心农场 · 三维田园世界</h1>
-    <p>这一版先“造世界”，再放设施：起伏地形决定空间，主路和田间路组织场景，水塘形成低洼景观核心，农田按台地分区，外围林带形成完整边界。</p>
-    <div class="buttons">
-      <button onclick="location.href='index.html'">⌂ 首页</button>
-      <button onclick="location.href='gis.html?mode=3d'">校园三维</button>
-      <button data-view="overview">全景</button>
-    </div>
-  </section>
+const mount=document.getElementById('farm');
+const scene=new THREE.Scene();scene.background=new THREE.Color(0xbfddec);scene.fog=new THREE.FogExp2(0xd4e8ef,.00125);
+const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.06;mount.appendChild(renderer.domElement);
+const camera=new THREE.PerspectiveCamera(43,innerWidth/innerHeight,.5,1800);const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.dampingFactor=.055;controls.minDistance=38;controls.maxDistance=680;controls.maxPolarAngle=Math.PI*.49;controls.target.set(0,8,0);
+scene.add(new THREE.HemisphereLight(0xecf9ff,0x68794d,2.2));const sun=new THREE.DirectionalLight(0xffefc9,3.15);sun.position.set(-170,250,125);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-330;sun.shadow.camera.right=330;sun.shadow.camera.top=270;sun.shadow.camera.bottom=-270;sun.shadow.camera.near=10;sun.shadow.camera.far=700;sun.shadow.bias=-.00018;scene.add(sun);
+const world=new THREE.Group();scene.add(world);
 
-  <aside class="glass guide">
-    <b>第一阶段场景骨架</b><br>
-    ⛰ 起伏地形 / 台地<br>
-    🛣 主路 / 田间路<br>
-    💧 水塘 / 湿地区<br>
-    🌾 四类农田分区<br>
-    🌲 外围林带 / 小丘<br>
-    🖱 拖动旋转 · 滚轮缩放
-  </aside>
+function gaussian(x,z,cx,cz,sx,sz,amp){const dx=(x-cx)/sx,dz=(z-cz)/sz;return amp*Math.exp(-(dx*dx+dz*dz))}
+function terrainHeight(x,z){let h=1.15*Math.sin(x*.024)+.9*Math.cos(z*.031)+.55*Math.sin((x+z)*.018);h+=gaussian(x,z,-220,-145,82,70,15)+gaussian(x,z,218,-145,95,78,12)+gaussian(x,z,-222,150,98,75,16)+gaussian(x,z,218,154,95,72,15)+gaussian(x,z,165,12,115,92,5);h-=gaussian(x,z,132,72,70,58,9.2)+gaussian(x,z,-15,-15,170,135,1.6);return h}
 
-  <div class="glass legend">🌾 农田　🟩 草坡　💧 水塘　🛣 道路　🌲 林带　🏡 温室农舍</div>
+const M={grass:new THREE.MeshStandardMaterial({color:0x7eae62,roughness:1}),grassDark:new THREE.MeshStandardMaterial({color:0x587b4e,roughness:1}),road:new THREE.MeshStandardMaterial({color:0xc7ae83,roughness:1}),path:new THREE.MeshStandardMaterial({color:0xe0c99c,roughness:1}),soil:new THREE.MeshStandardMaterial({color:0x765039,roughness:1}),soilDark:new THREE.MeshStandardMaterial({color:0x5f412f,roughness:1}),water:new THREE.MeshPhysicalMaterial({color:0x48a8c6,roughness:.2,transparent:true,opacity:.88,clearcoat:.45}),wood:new THREE.MeshStandardMaterial({color:0x8a6547,roughness:.9}),trunk:new THREE.MeshStandardMaterial({color:0x6d4d35,roughness:1}),leaf1:new THREE.MeshStandardMaterial({color:0x3f7844,roughness:1}),leaf2:new THREE.MeshStandardMaterial({color:0x5b944f,roughness:1}),leaf3:new THREE.MeshStandardMaterial({color:0x759d4f,roughness:1}),wall:new THREE.MeshStandardMaterial({color:0xe7ca98,roughness:.95}),roof:new THREE.MeshStandardMaterial({color:0xa94f3d,roughness:.82}),roof2:new THREE.MeshStandardMaterial({color:0x6d7b68,roughness:.86}),metal:new THREE.MeshStandardMaterial({color:0x65777a,roughness:.62,metalness:.2}),glass:new THREE.MeshPhysicalMaterial({color:0xc8f0e4,transparent:true,opacity:.48,roughness:.18,transmission:.12,side:THREE.DoubleSide}),white:new THREE.MeshStandardMaterial({color:0xf0ead8,roughness:.8})};
 
-  <div class="glass tour">
-    <strong>场景视角</strong>
-    <button data-view="overview">斜鸟瞰</button>
-    <button data-view="fields">农田</button>
-    <button data-view="pond">水塘</button>
-    <button data-view="forest">林带</button>
-    <button data-view="greenhouse">温室</button>
-  </div>
-  <div class="credit">Three.js · 纯前端 · GitHub Pages</div>
+const terrainGeo=new THREE.PlaneGeometry(560,440,92,74);terrainGeo.rotateX(-Math.PI/2);const pos=terrainGeo.attributes.position;for(let i=0;i<pos.count;i++){const x=pos.getX(i),z=pos.getZ(i);pos.setY(i,terrainHeight(x,z))}pos.needsUpdate=true;terrainGeo.computeVertexNormals();const terrain=new THREE.Mesh(terrainGeo,M.grass);terrain.receiveShadow=true;world.add(terrain);
+const base=new THREE.Mesh(new THREE.CylinderGeometry(358,386,20,64),M.grassDark);base.position.y=-14;base.scale.z=.76;base.receiveShadow=true;world.add(base);
 
-  <script type="module">
-    import * as THREE from 'three';
-    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+function addBox(x,z,w,d,h,material,y=.1,rot=0){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);m.position.set(x,terrainHeight(x,z)+h/2+y,z);m.rotation.y=rot;m.castShadow=true;m.receiveShadow=true;world.add(m);return m}
+function linePoints(x1,z1,x2,z2,n=20,lift=.55){const pts=[];for(let i=0;i<=n;i++){const t=i/n,x=THREE.MathUtils.lerp(x1,x2,t),z=THREE.MathUtils.lerp(z1,z2,t);pts.push(new THREE.Vector3(x,terrainHeight(x,z)+lift,z))}return pts}
+function addRoad(x1,z1,x2,z2,width=9,material=M.road){const curve=new THREE.CatmullRomCurve3(linePoints(x1,z1,x2,z2));const mesh=new THREE.Mesh(new THREE.TubeGeometry(curve,40,width/2,8,false),material);mesh.castShadow=false;mesh.receiveShadow=true;world.add(mesh);return mesh}
+function addPath(points,width=4,material=M.path){const pts=[];for(const [x,z] of points)pts.push(new THREE.Vector3(x,terrainHeight(x,z)+.48,z));const curve=new THREE.CatmullRomCurve3(pts);const mesh=new THREE.Mesh(new THREE.TubeGeometry(curve,Math.max(30,points.length*12),width/2,7,false),material);mesh.receiveShadow=true;world.add(mesh);return mesh}
 
-    const mount = document.getElementById('farm');
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xbfdff0);
-    scene.fog = new THREE.FogExp2(0xc8e3ef, 0.00135);
+addRoad(0,210,0,-190,12);addRoad(-225,18,225,18,10);addRoad(-118,18,-118,158,6.5,M.path);addRoad(-42,18,-42,158,6.5,M.path);addRoad(56,18,56,150,6.5,M.path);addRoad(0,-108,210,-108,7,M.path);addPath([[98,-108],[116,-82],[134,-58],[149,-30]],5.5);addPath([[-210,-78],[-162,-88],[-116,-99],[-70,-108]],5);addBox(0,183,58,32,.8,M.road,.65);
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.8));
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.05;
-    mount.appendChild(renderer.domElement);
+function fenceSegment(x1,z1,x2,z2){const dx=x2-x1,dz=z2-z1,L=Math.hypot(dx,dz),a=-Math.atan2(dz,dx),mx=(x1+x2)/2,mz=(z1+z2)/2;for(const yy of [1.25,2.7]){const rail=new THREE.Mesh(new THREE.BoxGeometry(L,.22,.22),M.wood);rail.position.set(mx,terrainHeight(mx,mz)+yy,mz);rail.rotation.y=a;rail.castShadow=true;world.add(rail)}const posts=Math.max(2,Math.ceil(L/8));for(let i=0;i<=posts;i++){const t=i/posts,x=THREE.MathUtils.lerp(x1,x2,t),z=THREE.MathUtils.lerp(z1,z2,t);const p=new THREE.Mesh(new THREE.CylinderGeometry(.22,.3,3.4,6),M.wood);p.position.set(x,terrainHeight(x,z)+1.7,z);p.castShadow=true;world.add(p)}}
+function fencedRect(x,z,w,d,gapSide='south'){const hw=w/2,hd=d/2;if(gapSide!=='north')fenceSegment(x-hw,z-hd,x+hw,z-hd);if(gapSide!=='south')fenceSegment(x-hw,z+hd,x+hw,z+hd);fenceSegment(x-hw,z-hd,x-hw,z+hd);fenceSegment(x+hw,z-hd,x+hw,z+hd)}
 
-    const camera = new THREE.PerspectiveCamera(43, window.innerWidth / window.innerHeight, 0.5, 1800);
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.055;
-    controls.minDistance = 45;
-    controls.maxDistance = 650;
-    controls.maxPolarAngle = Math.PI * 0.485;
-    controls.target.set(0, 8, 0);
+const fields=[{x:-170,z:91,w:78,d:94,crop:0xd3b449,type:'grain'},{x:-80,z:91,w:68,d:94,crop:0x72a448,type:'vegetable'},{x:-170,z:-46,w:86,d:90,crop:0x8ca744,type:'vegetable'},{x:-78,z:-47,w:68,d:90,crop:0xc66d65,type:'flower'}];
+function addFurrow(x,z,w,material){const pts=linePoints(x-w/2,z,x+w/2,z,14,.88);const c=new THREE.CatmullRomCurve3(pts);const m=new THREE.Mesh(new THREE.TubeGeometry(c,22,.65,6,false),material);m.receiveShadow=true;world.add(m)}
+function addCropPatch(f,index){const cropMat=new THREE.MeshStandardMaterial({color:f.crop,roughness:1});const stemMat=new THREE.MeshStandardMaterial({color:index===3?0x4f7d3e:0x5d843b,roughness:1});for(let r=0;r<10;r++){const rz=f.z-f.d/2+7+r*((f.d-14)/9);addFurrow(f.x,rz,f.w-8,M.soilDark)}const count=index===3?250:330;const geom=index===3?new THREE.SphereGeometry(.85,6,5):new THREE.ConeGeometry(.62,index===0?2.8:2.1,6);const inst=new THREE.InstancedMesh(geom,cropMat,count);const dummy=new THREE.Object3D();let k=0;const cols=22,rows=Math.ceil(count/cols);for(let rr=0;rr<rows&&k<count;rr++){for(let cc=0;cc<cols&&k<count;cc++,k++){const x=f.x-f.w/2+5+cc*((f.w-10)/(cols-1))+(rr%2)*.35,z=f.z-f.d/2+5+rr*((f.d-10)/(rows-1));dummy.position.set(x,terrainHeight(x,z)+(index===0?1.7:1.35),z);dummy.scale.set(1,index===0?1.2:.9,1);dummy.rotation.y=((cc*17+rr*11)%20)/20;dummy.updateMatrix();inst.setMatrixAt(k,dummy.matrix)}}inst.castShadow=true;inst.receiveShadow=true;world.add(inst);if(index===3){const stems=new THREE.InstancedMesh(new THREE.CylinderGeometry(.08,.1,1.45,5),stemMat,count);k=0;for(let rr=0;rr<rows&&k<count;rr++)for(let cc=0;cc<cols&&k<count;cc++,k++){const x=f.x-f.w/2+5+cc*((f.w-10)/(cols-1))+(rr%2)*.35,z=f.z-f.d/2+5+rr*((f.d-10)/(rows-1));dummy.position.set(x,terrainHeight(x,z)+.72,z);dummy.scale.set(1,1,1);dummy.updateMatrix();stems.setMatrixAt(k,dummy.matrix)}stems.castShadow=true;world.add(stems)}}
+fields.forEach((f,i)=>{fencedRect(f.x,f.z,f.w+4,f.d+4,'south');addCropPatch(f,i)});
 
-    const hemi = new THREE.HemisphereLight(0xeaf8ff, 0x6f7e50, 2.3);
-    scene.add(hemi);
-    const sun = new THREE.DirectionalLight(0xfff2cf, 3.2);
-    sun.position.set(-160, 260, 120);
-    sun.castShadow = true;
-    sun.shadow.mapSize.set(2048, 2048);
-    sun.shadow.camera.left = -330;
-    sun.shadow.camera.right = 330;
-    sun.shadow.camera.top = 280;
-    sun.shadow.camera.bottom = -280;
-    sun.shadow.camera.near = 10;
-    sun.shadow.camera.far = 700;
-    sun.shadow.bias = -0.00015;
-    scene.add(sun);
+// orchard
+fencedRect(175,-48,83,100,'west');function addTree(x,z,s=1,variant=0,fruit=false){const y=terrainHeight(x,z);const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.45*s,.62*s,5.6*s,7),M.trunk);trunk.position.set(x,y+2.8*s,z);trunk.castShadow=true;world.add(trunk);const lm=[M.leaf1,M.leaf2,M.leaf3][variant%3];for(const [ox,oy,oz,ss] of [[0,6.2,0,2.7],[-1.5,5.8,.6,1.8],[1.4,5.9,-.4,1.9]]){const crown=new THREE.Mesh(new THREE.IcosahedronGeometry(ss*s,1),lm);crown.position.set(x+ox*s,y+oy*s,z+oz*s);crown.castShadow=true;world.add(crown)}if(fruit){const fruitMat=new THREE.MeshStandardMaterial({color:variant%2?0xe7a33b:0xc74b3e,roughness:.8});for(let j=0;j<7;j++){const a=j*.9,r=1.3+(j%3)*.25,fy=y+(6.1+(j%2)*.7)*s;const ball=new THREE.Mesh(new THREE.SphereGeometry(.28*s,7,6),fruitMat);ball.position.set(x+Math.cos(a)*r*s,fy,z+Math.sin(a)*r*s);world.add(ball)}}}
+for(let r=0;r<5;r++)for(let c=0;c<5;c++)addTree(147+c*14,-84+r*18,.85+(r+c)%3*.06,(r+c)%3,true);
 
-    const world = new THREE.Group();
-    scene.add(world);
+// pond + bank + reeds
+const bank=new THREE.Mesh(new THREE.RingGeometry(43,52,64),new THREE.MeshStandardMaterial({color:0x809668,roughness:1}));bank.rotation.x=-Math.PI/2;bank.scale.set(1.45,.95,1);bank.position.set(132,terrainHeight(132,70)-2.1,70);world.add(bank);const pond=new THREE.Mesh(new THREE.CircleGeometry(44,72),M.water);pond.rotation.x=-Math.PI/2;pond.scale.set(1.45,.95,1);pond.position.set(132,terrainHeight(132,70)-2.0,70);world.add(pond);
+const reedMat=new THREE.MeshStandardMaterial({color:0x64874b,roughness:1});for(let i=0;i<60;i++){const a=i/60*Math.PI*2,r=45+(i%5)*1.2,x=132+Math.cos(a)*r*1.45,z=70+Math.sin(a)*r*.95;const reed=new THREE.Mesh(new THREE.CylinderGeometry(.08,.12,2.8+(i%4)*.35,5),reedMat);reed.position.set(x,terrainHeight(x,z)+1.3,z);reed.rotation.z=(i%3-1)*.08;world.add(reed)}
+// bridge
+for(let i=-4;i<=4;i++)addBox(88+i*3.2,70,2.7,8,.45,M.wood,1.25);fenceSegment(75,65,101,65);fenceSegment(75,75,101,75);
 
-    function gaussian(x, z, cx, cz, sx, sz, amp) {
-      const dx = (x - cx) / sx;
-      const dz = (z - cz) / sz;
-      return amp * Math.exp(-(dx * dx + dz * dz));
-    }
+// greenhouse
+function greenhouse(x,z,w=46,d=25){const y=terrainHeight(x,z);const group=new THREE.Group();const body=new THREE.Mesh(new THREE.BoxGeometry(w,9,d),M.glass);body.position.y=5;body.castShadow=true;group.add(body);const roof=new THREE.Mesh(new THREE.CylinderGeometry(d/2,d/2,w,16,1,false,0,Math.PI),M.glass);roof.rotation.z=Math.PI/2;roof.rotation.y=Math.PI/2;roof.position.y=9.2;group.add(roof);for(const xx of [-w/2,0,w/2]){const rib=new THREE.Mesh(new THREE.BoxGeometry(.35,11,d+.5),M.white);rib.position.set(xx,5.2,0);group.add(rib)}group.position.set(x,y+.1,z);world.add(group);return group}
+greenhouse(89,-55,44,24);greenhouse(89,-22,44,24);
 
-    function terrainHeight(x, z) {
-      let h = 1.3 * Math.sin(x * 0.025) + 1.0 * Math.cos(z * 0.031) + 0.7 * Math.sin((x + z) * 0.018);
-      h += gaussian(x, z, -205, -135, 85, 75, 16);
-      h += gaussian(x, z, 210, -130, 95, 80, 13);
-      h += gaussian(x, z, -215, 145, 100, 80, 18);
-      h += gaussian(x, z, 220, 150, 95, 75, 16);
-      h += gaussian(x, z, 150, 25, 115, 90, 5);
-      h -= gaussian(x, z, 128, 72, 72, 60, 9.5);
-      h -= gaussian(x, z, -10, -25, 165, 130, 1.8);
-      return h;
-    }
+// farmhouse / barn
+function house(x,z,w,d,h,roofColor=M.roof){const y=terrainHeight(x,z);const g=new THREE.Group();const body=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),M.wall);body.position.y=h/2;body.castShadow=true;body.receiveShadow=true;g.add(body);const roof=new THREE.Mesh(new THREE.ConeGeometry(Math.max(w,d)*.72,6,4),roofColor);roof.rotation.y=Math.PI/4;roof.scale.z=d/w;roof.position.y=h+3;roof.castShadow=true;g.add(roof);const door=new THREE.Mesh(new THREE.BoxGeometry(4,6,.4),M.wood);door.position.set(0,3,d/2+.22);g.add(door);for(const sx of [-1,1]){const win=new THREE.Mesh(new THREE.BoxGeometry(3.2,3,.35),M.glass);win.position.set(sx*w*.25,h*.58,d/2+.25);g.add(win)}g.position.set(x,y+.1,z);world.add(g);return g}
+house(25,-62,30,24,13);house(36,-94,38,22,12,M.roof2);
+// water tower
+(function(){const x=12,z=-126,y=terrainHeight(x,z);for(const sx of [-4,4])for(const sz of [-4,4]){const leg=new THREE.Mesh(new THREE.CylinderGeometry(.35,.5,15,6),M.metal);leg.position.set(x+sx,y+7.5,z+sz);leg.castShadow=true;world.add(leg)}const tank=new THREE.Mesh(new THREE.CylinderGeometry(7,7,9,18),M.metal);tank.position.set(x,y+19,z);tank.castShadow=true;world.add(tank);const cap=new THREE.Mesh(new THREE.ConeGeometry(7.3,4,18),M.roof2);cap.position.set(x,y+25.5,z);world.add(cap)})();
+// windmill
+(function(){const x=207,z=112,y=terrainHeight(x,z);const mast=new THREE.Mesh(new THREE.CylinderGeometry(.6,1.3,27,8),M.white);mast.position.set(x,y+13.5,z);mast.castShadow=true;world.add(mast);const hub=new THREE.Mesh(new THREE.SphereGeometry(1.5,10,8),M.metal);hub.position.set(x,y+27,z);world.add(hub);for(let i=0;i<4;i++){const blade=new THREE.Mesh(new THREE.BoxGeometry(.7,13,2.2),M.white);blade.position.set(x+Math.sin(i*Math.PI/2)*6.5,y+27+Math.cos(i*Math.PI/2)*6.5,z);blade.rotation.z=-i*Math.PI/2;blade.castShadow=true;world.add(blade)}})();
 
-    const terrainGeo = new THREE.PlaneGeometry(560, 440, 90, 72);
-    terrainGeo.rotateX(-Math.PI / 2);
-    const tp = terrainGeo.attributes.position;
-    for (let i = 0; i < tp.count; i++) {
-      const x = tp.getX(i);
-      const z = tp.getZ(i);
-      tp.setY(i, terrainHeight(x, z));
-    }
-    tp.needsUpdate = true;
-    terrainGeo.computeVertexNormals();
-    const terrain = new THREE.Mesh(
-      terrainGeo,
-      new THREE.MeshStandardMaterial({ color: 0x79a95d, roughness: 0.98, metalness: 0.0 })
-    );
-    terrain.receiveShadow = true;
-    world.add(terrain);
+// perimeter forest belts, deliberately irregular
+const treeSpots=[];for(let x=-255;x<=255;x+=15){treeSpots.push([x,-198+(Math.sin(x*.08)*5)],[x,198+(Math.cos(x*.07)*4)])}for(let z=-180;z<=180;z+=16){treeSpots.push([-255+(Math.sin(z*.09)*4),z],[255+(Math.cos(z*.08)*4),z])}treeSpots.forEach((p,i)=>{if(Math.abs(p[0])<35&&p[1]>180)return;addTree(p[0],p[1],.8+(i%5)*.08,i%3,false)});
+// grove on north-west hill
+for(let i=0;i<22;i++){const a=i*2.4,r=16+(i%6)*6;addTree(-205+Math.cos(a)*r,145+Math.sin(a)*r,.82+(i%4)*.09,i%3,false)}
 
-    const base = new THREE.Mesh(
-      new THREE.CylinderGeometry(360, 385, 18, 64),
-      new THREE.MeshStandardMaterial({ color: 0x52754c, roughness: 1 })
-    );
-    base.position.y = -13;
-    base.scale.z = 0.76;
-    base.receiveShadow = true;
-    world.add(base);
+// entrance gate + sign
+(function(){const z=184,y=terrainHeight(0,z);for(const x of [-19,19]){const p=new THREE.Mesh(new THREE.BoxGeometry(2.2,10,2.2),M.white);p.position.set(x,y+5,z);p.castShadow=true;world.add(p)}const beam=new THREE.Mesh(new THREE.BoxGeometry(40,2.3,2.2),M.white);beam.position.set(0,y+10,z);beam.castShadow=true;world.add(beam);const sign=document.createElement('canvas');sign.width=512;sign.height=96;const ctx=sign.getContext('2d');ctx.fillStyle='#f6f1df';ctx.fillRect(0,0,512,96);ctx.fillStyle='#28563d';ctx.font='bold 48px Microsoft YaHei';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('开心农场',256,49);const tex=new THREE.CanvasTexture(sign);tex.colorSpace=THREE.SRGBColorSpace;const panel=new THREE.Mesh(new THREE.PlaneGeometry(18,3.4),new THREE.MeshBasicMaterial({map:tex,side:THREE.DoubleSide}));panel.position.set(0,y+10,z-1.2);world.add(panel)})();
 
-    const mat = {
-      road: new THREE.MeshStandardMaterial({ color: 0xc7ae83, roughness: 1 }),
-      soil: new THREE.MeshStandardMaterial({ color: 0x765036, roughness: 1 }),
-      water: new THREE.MeshPhysicalMaterial({ color: 0x4ca9c3, roughness: 0.25, metalness: 0.02, transparent: true, opacity: 0.88, clearcoat: 0.3 }),
-      wood: new THREE.MeshStandardMaterial({ color: 0x8a6547, roughness: 0.9 }),
-      trunk: new THREE.MeshStandardMaterial({ color: 0x71533b, roughness: 1 }),
-      leaf1: new THREE.MeshStandardMaterial({ color: 0x3f7d45, roughness: 1 }),
-      leaf2: new THREE.MeshStandardMaterial({ color: 0x57944d, roughness: 1 }),
-      leaf3: new THREE.MeshStandardMaterial({ color: 0x6a9f51, roughness: 1 }),
-      glass: new THREE.MeshPhysicalMaterial({ color: 0xc9f1e7, transparent: true, opacity: 0.42, roughness: 0.25, transmission: 0.15, side: THREE.DoubleSide }),
-      roof: new THREE.MeshStandardMaterial({ color: 0xa9513d, roughness: 0.8 }),
-      wall: new THREE.MeshStandardMaterial({ color: 0xe7c78f, roughness: 0.95 })
-    };
+const views={overview:{p:[310,245,330],t:[0,6,0]},fields:{p:[-245,105,205],t:[-115,3,25]},pond:{p:[252,95,205],t:[130,-1,68]},orchard:{p:[275,88,-130],t:[175,4,-48]},greenhouse:{p:[165,78,-175],t:[65,5,-60]}};
+let tween=null;function goView(name){const v=views[name]||views.overview;const startP=camera.position.clone(),startT=controls.target.clone(),endP=new THREE.Vector3(...v.p),endT=new THREE.Vector3(...v.t),start=performance.now();tween={update(now){const raw=Math.min(1,(now-start)/900),q=raw<.5?2*raw*raw:1-Math.pow(-2*raw+2,2)/2;camera.position.lerpVectors(startP,endP,q);controls.target.lerpVectors(startT,endT,q);if(raw>=1)tween=null}}}
+document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>goView(b.dataset.view)));camera.position.set(...views.overview.p);controls.target.set(...views.overview.t);controls.update();
 
-    function addBox(x, z, w, d, h, material, yOffset = 0) {
-      const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), material);
-      mesh.position.set(x, terrainHeight(x, z) + h / 2 + yOffset, z);
-      mesh.castShadow = true;
-      mesh.receiveShadow = true;
-      world.add(mesh);
-      return mesh;
-    }
-
-    function addRoadSegment(x1, z1, x2, z2, width = 10, material = mat.road) {
-      const dx = x2 - x1, dz = z2 - z1;
-      const length = Math.hypot(dx, dz);
-      const x = (x1 + x2) / 2, z = (z1 + z2) / 2;
-      const road = addBox(x, z, length, width, 0.72, material, 0.75);
-      road.rotation.y = -Math.atan2(dz, dx);
-      return road;
-    }
-
-    addRoadSegment(0, 210, 0, -188, 13);
-    addRoadSegment(-222, 18, 222, 18, 11);
-    addRoadSegment(-118, 18, -118, 155, 7);
-    addRoadSegment(-42, 18, -42, 155, 7);
-    addRoadSegment(55, 18, 55, 151, 7);
-    addRoadSegment(0, -108, 205, -108, 8);
-    addRoadSegment(104, -108, 148, -30, 7);
-    addRoadSegment(-205, -80, -70, -108, 6);
-    addBox(0, 183, 56, 34, 0.9, mat.road, 0.7);
-
-    const fieldDefs = [
-      { x: -165, z: 93, w: 82, d: 95, color: 0xd0ad48 },
-      { x: -80, z: 92, w: 70, d: 95, color: 0x6f9f46 },
-      { x: -170, z: -47, w: 90, d: 95, color: 0x91a843 },
-      { x: -75, z: -48, w: 72, d: 94, color: 0x8daf58 }
-    ];
-
-    fieldDefs.forEach((f, fieldIndex) => {
-      addBox(f.x, f.z, f.w, f.d, 1.6, mat.soil, 1.0);
-      const cropMat = new THREE.MeshStandardMaterial({ color: f.color, roughness: 1 });
-      const rows = 10;
-      for (let r = 0; r < rows; r++) {
-        const rz = f.z - f.d / 2 + 8 + r * ((f.d - 16) / (rows - 1));
-        const row = addBox(f.x, rz, f.w - 9, 2.4, 1.1 + (fieldIndex % 2) * 0.3, cropMat, 2.1);
-        row.castShadow = false;
-      }
-    });
-
-    const pond = new THREE.Mesh(new THREE.CircleGeometry(44, 64), mat.water);
-    pond.rotation.x = -Math.PI / 2;
-    pond.scale.set(1.45, 0.95, 1);
-    pond.position.set(132, -2.4, 70);
-    pond.receiveShadow = true;
-    world.add(pond);
-
-    const wetlandMat = new THREE.MeshStandardMaterial({ color: 0x6f9d68, roughness: 1 });
-    for (let i = 0; i < 28; i++) {
-      const a = (i / 28) * Math.PI * 2;
-      const rx = 66 + (i % 3) * 3;
-      const rz = 42 + ((i + 1) % 3) * 2;
-      const x = 132 + Math.cos(a) * rx;
-      const z = 70 + Math.sin(a) * rz;
-      const reed = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 1.2, 5 + (i % 4), 5), wetlandMat);
-      reed.position.set(x, terrainHeight(x, z) + 2.4, z);
-      reed.castShadow = true;
-      world.add(reed);
-    }
-
-    for (let i = 0; i < 10; i++) addBox(95 + i * 5.2, 70, 4.4, 11, 1.2, mat.wood, 2.1);
-    addRoadSegment(78, 70, 96, 70, 5, mat.wood);
-
-    function tree(x, z, s = 1, leafMaterial = mat.leaf1) {
-      const y = terrainHeight(x, z);
-      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.7 * s, 1.0 * s, 6.2 * s, 7), mat.trunk);
-      trunk.position.set(x, y + 3.1 * s, z);
-      trunk.castShadow = true;
-      const crown = new THREE.Mesh(new THREE.ConeGeometry(4.2 * s, 9.0 * s, 8), leafMaterial);
-      crown.position.set(x, y + 9.1 * s, z);
-      crown.castShadow = true;
-      world.add(trunk, crown);
-    }
-
-    const rand = (n) => {
-      const v = Math.sin(n * 91.733) * 43758.5453;
-      return v - Math.floor(v);
-    };
-
-    let seed = 1;
-    function treeLine(x1, z1, x2, z2, count, spread = 8) {
-      for (let i = 0; i < count; i++) {
-        const t = count === 1 ? 0.5 : i / (count - 1);
-        const x = THREE.MathUtils.lerp(x1, x2, t) + (rand(seed++) - .5) * spread;
-        const z = THREE.MathUtils.lerp(z1, z2, t) + (rand(seed++) - .5) * spread;
-        const s = 0.75 + rand(seed++) * 0.65;
-        const leaf = [mat.leaf1, mat.leaf2, mat.leaf3][Math.floor(rand(seed++) * 3)];
-        tree(x, z, s, leaf);
-      }
-    }
-
-    treeLine(-255, -185, 255, -185, 38, 16);
-    treeLine(-255, 188, -70, 205, 18, 13);
-    treeLine(70, 205, 255, 185, 18, 13);
-    treeLine(-258, -175, -262, 180, 27, 15);
-    treeLine(260, -176, 258, 182, 28, 15);
-    treeLine(-225, -145, -160, -118, 12, 17);
-    treeLine(185, -155, 230, -115, 12, 17);
-    treeLine(-224, 144, -170, 155, 11, 15);
-
-    function greenhouse(x, z, rot = 0) {
-      const group = new THREE.Group();
-      const floor = new THREE.Mesh(new THREE.BoxGeometry(26, 1, 52), new THREE.MeshStandardMaterial({ color: 0x9b7a52, roughness: 1 }));
-      floor.position.y = 0.5;
-      floor.receiveShadow = true;
-      group.add(floor);
-      const shell = new THREE.Mesh(new THREE.BoxGeometry(25, 9, 50), mat.glass);
-      shell.position.y = 5.3;
-      shell.castShadow = true;
-      group.add(shell);
-      const roof = new THREE.Mesh(new THREE.CylinderGeometry(12.5, 12.5, 50, 18, 1, false, 0, Math.PI), mat.glass);
-      roof.rotation.z = Math.PI / 2;
-      roof.rotation.y = Math.PI / 2;
-      roof.position.y = 9.5;
-      group.add(roof);
-      group.position.set(x, terrainHeight(x, z) + 1.1, z);
-      group.rotation.y = rot;
-      world.add(group);
-    }
-    greenhouse(46, 82, 0);
-    greenhouse(78, 82, 0);
-    greenhouse(46, 22, 0);
-
-    addBox(165, -78, 42, 30, 18, mat.wall, 1.0);
-    const barnRoof = new THREE.Mesh(new THREE.ConeGeometry(25, 12, 4), mat.roof);
-    barnRoof.rotation.y = Math.PI / 4;
-    barnRoof.scale.z = 0.78;
-    barnRoof.position.set(165, terrainHeight(165, -78) + 25, -78);
-    barnRoof.castShadow = true;
-    world.add(barnRoof);
-
-    const towerY = terrainHeight(210, -15);
-    const tower = new THREE.Mesh(new THREE.CylinderGeometry(7, 5, 17, 12), new THREE.MeshStandardMaterial({ color: 0x6b9db0, roughness: .75 }));
-    tower.position.set(210, towerY + 24, -15);
-    tower.castShadow = true;
-    world.add(tower);
-    for (const dx of [-5, 5]) for (const dz of [-5, 5]) {
-      const leg = new THREE.Mesh(new THREE.CylinderGeometry(.55, .75, 24, 6), mat.wood);
-      leg.position.set(210 + dx, towerY + 12, -15 + dz);
-      leg.castShadow = true;
-      world.add(leg);
-    }
-
-    addBox(-14, 187, 3.2, 4, 17, mat.wall, 1.1);
-    addBox(14, 187, 3.2, 4, 17, mat.wall, 1.1);
-    addBox(0, 187, 31, 4, 3, mat.roof, 16.2);
-
-    const views = {
-      overview: { pos: new THREE.Vector3(330, 255, 340), target: new THREE.Vector3(0, 5, 5) },
-      fields: { pos: new THREE.Vector3(-250, 150, 210), target: new THREE.Vector3(-110, 8, 20) },
-      pond: { pos: new THREE.Vector3(280, 105, 185), target: new THREE.Vector3(130, -1, 70) },
-      forest: { pos: new THREE.Vector3(-330, 125, -220), target: new THREE.Vector3(-200, 12, -130) },
-      greenhouse: { pos: new THREE.Vector3(175, 95, 165), target: new THREE.Vector3(55, 7, 55) }
-    };
-
-    let flight = null;
-    function goView(name) {
-      const view = views[name] || views.overview;
-      flight = {
-        startTime: performance.now(),
-        duration: 950,
-        fromPos: camera.position.clone(),
-        fromTarget: controls.target.clone(),
-        toPos: view.pos.clone(),
-        toTarget: view.target.clone()
-      };
-    }
-
-    document.querySelectorAll('[data-view]').forEach(btn => btn.addEventListener('click', () => goView(btn.dataset.view)));
-
-    function ease(t) { return 1 - Math.pow(1 - t, 3); }
-    function updateFlight(now) {
-      if (!flight) return;
-      const t = Math.min(1, (now - flight.startTime) / flight.duration);
-      const e = ease(t);
-      camera.position.lerpVectors(flight.fromPos, flight.toPos, e);
-      controls.target.lerpVectors(flight.fromTarget, flight.toTarget, e);
-      if (t >= 1) flight = null;
-    }
-
-    camera.position.copy(views.overview.pos);
-    controls.target.copy(views.overview.target);
-    controls.update();
-
-    function animate(now) {
-      requestAnimationFrame(animate);
-      updateFlight(now);
-      controls.update();
-      renderer.render(scene, camera);
-    }
-    requestAnimationFrame(animate);
-
-    window.addEventListener('resize', () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    });
-  </script>
+function animate(now){requestAnimationFrame(animate);if(tween)tween.update(now);controls.update();renderer.render(scene,camera)}animate();
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+</script>
 </body>
 </html>
